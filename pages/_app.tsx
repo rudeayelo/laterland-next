@@ -1,4 +1,5 @@
 import App from "next/app";
+import Head from "next/head";
 import React from "react";
 import { createGlobalStyle, ThemeProvider } from "styled-components";
 import { Box, Button, createTheme, Flex } from "@rudeland/ui";
@@ -8,8 +9,6 @@ import { MdPerson } from "react-icons/md";
 
 const Main = ({ children }) => {
   const { user, signin } = useAuth();
-
-  console.log(user.isSignedIn);
 
   if (!user.isSignedIn)
     return (
@@ -54,6 +53,18 @@ export default class MyApp extends App {
 
     return (
       <>
+        <Head>
+          <link rel="shortcut icon" href="/static/favicon.ico" />
+          <link rel="apple-touch-icon" href="/static/icon-512.png" />
+          <meta
+            name="viewport"
+            content="width=device-width, initial-scale=1, shrink-to-fit=no"
+          />
+          <meta name="theme-color" content="#fff" />
+          <link rel="manifest" href="static/manifest.json" />
+
+          <title>Laterland</title>
+        </Head>
         <GlobalStyle />
         <ThemeProvider theme={createTheme({ accentColor: "hsl(36,80%,70%)" })}>
           <UserProvider>
