@@ -5,7 +5,7 @@ import format from "date-fns/lightFormat";
 import formatDistance from "date-fns/formatDistance";
 import extractDomain from "extract-domain";
 import { Box, Button, Flex, Text } from "@rudeland/ui";
-import { Loading } from "../components";
+import { PageLoading } from "../components";
 import { useAuth, useFetch } from "../hooks";
 
 const Detail = styled(Text).attrs({
@@ -76,9 +76,9 @@ export default () => {
     );
 
   return (
-    <Box>
+    <>
       {loading ? (
-        <Loading />
+        <PageLoading />
       ) : (
         <>
           <Text as="h1" fontWeight={2} textSize={4} py={3} px={3}>
@@ -89,6 +89,6 @@ export default () => {
           ))}
         </>
       )}
-    </Box>
+    </>
   );
 };

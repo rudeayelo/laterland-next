@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import { Box, Button, Flex, Text } from "@rudeland/ui";
-import { Alert, Input, Loading } from "../components";
+import { Alert, Input, Loading, PageLoading } from "../components";
 import { useAuth, useFetch } from "../hooks";
 import { MdDone, MdClose } from "react-icons/md";
 
@@ -38,7 +38,7 @@ export default () => {
   return (
     <>
       {loading ? (
-        <Loading />
+        <PageLoading />
       ) : (
         <Flex
           flexDirection="column"
