@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
-import styled from "styled-components";
 import { Box, Button, Flex, Text } from "@rudeland/ui";
 import { Alert, Input, Loading } from "../components";
 import { useAuth, useFetch } from "../hooks";
@@ -35,8 +34,6 @@ export default () => {
   }, [data]);
 
   if (error) return <Text>Error loading post</Text>;
-
-  console.log({ updateLoading, updateResponse });
 
   return (
     <>
@@ -132,18 +129,6 @@ export default () => {
               </Box>
             )
           )}
-          {/* <Box alignSelf="flex-end">
-            <Button
-              appearance="primary"
-              intent="success"
-              size="large"
-              iconBefore={<MdDone size={20} />}
-              onClick={() => console.log("save")}
-              mt={2}
-            >
-              Save
-            </Button>
-          </Box> */}
         </Flex>
       )}
     </>

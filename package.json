@@ -24,7 +24,7 @@
     "styled-system": "5.1.2"
   },
   "scripts": {
-    "dev": "now dev",
+    "dev": "next dev",
     "build": "next build",
     "start": "next start"
   },
