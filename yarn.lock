@@ -1097,10 +1097,10 @@
   resolved "https://registry.yarnpkg.com/@protobufjs/utf8/-/utf8-1.1.0.tgz#a777360b5b39a1a2e5106f8e858f2fd2d060c570"
   integrity sha1-p3c2C1s5oaLlEG+OhY8v0tBgxXA=
 
-"@rudeland/ui@0.10.5":
-  version "0.10.5"
-  resolved "https://registry.yarnpkg.com/@rudeland/ui/-/ui-0.10.5.tgz#603339279a2c3ba9d48e210e820b186cfbf0c6b1"
-  integrity sha512-5thaWzFlnfQxIokqLaeuDwWyOBLwxn9LokA8uSNnL+G7A5s+7LoMuadI6r3hoEax0RlqbM6stzVfjy1Wc9gWDQ==
+"@rudeland/ui@0.10.6":
+  version "0.10.6"
+  resolved "https://registry.yarnpkg.com/@rudeland/ui/-/ui-0.10.6.tgz#f49ead82d6375a085dba85b2a4dc36b98de166b9"
+  integrity sha512-5UEIr8bvJ4NaGCSR4cCgPF1gXDG17vuI0/jNVszZu/A8gC7wDUSYrjOFR5gojiVSXZttl6bmqkbGLCqlNLSreg==
   dependencies:
     color "3.1.2"
     deepmerge "4.1.1"
@@ -1414,11 +1414,6 @@
     "@webassemblyjs/ast" "1.8.5"
     "@webassemblyjs/wast-parser" "1.8.5"
     "@xtuc/long" "4.2.2"
-
-"@xstate/fsm@1.0.1":
-  version "1.0.1"
-  resolved "https://registry.yarnpkg.com/@xstate/fsm/-/fsm-1.0.1.tgz#153d86c6ce246d77bffb67e51875e2985609f6c2"
-  integrity sha512-ZURJOXlLLSWQ73X6tw6igURSHQWQUGOR24T+86uHWiLlr9aPldyNMrwj8qno2KSHtmJT4Y2QMPbuH62hSrbYmg==
 
 "@xstate/react@0.7.1":
   version "0.7.1"

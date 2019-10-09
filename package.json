@@ -8,8 +8,7 @@
   "license": "MIT",
   "private": false,
   "dependencies": {
-    "@rudeland/ui": "0.10.5",
-    "@xstate/fsm": "1.0.1",
+    "@rudeland/ui": "0.10.6",
     "@xstate/react": "0.7.1",
     "date-fns": "2.4.1",
     "extract-domain": "2.2.1",

@@ -3,12 +3,14 @@ import Head from "next/head";
 import React from "react";
 import { createGlobalStyle, ThemeProvider } from "styled-components";
 import { Box, Button, createTheme, Flex } from "@rudeland/ui";
-import { UserProvider } from "../components/UserProvider";
-import { useAuth } from "../hooks";
+import { UserProvider, PageLoading } from "../components";
+import { useAuth } from "../hooks/useAuth";
 import { MdPerson } from "react-icons/md";
 
 const Main = ({ children }) => {
-  const { user, signin } = useAuth();
+  const { user, signin, userLoading } = useAuth();
+
+  if (userLoading) return <PageLoading />;
 
   if (!user.isSignedIn)
     return (

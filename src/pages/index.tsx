@@ -5,7 +5,7 @@ import format from "date-fns/lightFormat";
 import formatDistance from "date-fns/formatDistance";
 import extractDomain from "extract-domain";
 import { Box, Button, Flex, Text } from "@rudeland/ui";
-import { PageLoading } from "../components";
+import { Alert, PageLoading } from "../components";
 import { useAuth, useFetch } from "../hooks";
 
 const Detail = styled(Text).attrs({
@@ -72,20 +72,19 @@ const Post = ({ post }) => {
 };
 
 export default () => {
-  const { user, signout, userLoading } = useAuth();
-  console.log("userLoading", userLoading);
+  const { user } = useAuth();
   const { data, error, loading } = useFetch(
-    `/api/list?uid=${user && user.uid}&toread=yes`
+    `/api/list?uid=${user.uid}&toread=yes`
   );
 
   if (error)
     return (
-      <Text>
-        Error loading posts, <Text onClick={signout}>sign out maybe?</Text>
-      </Text>
+      <Alert intent="danger" alignItems="center" alignSelf="flex-start">
+        Error loading posts
+      </Alert>
     );
 
-  return userLoading || loading ? (
+  return loading ? (
     <PageLoading />
   ) : (
     <>
