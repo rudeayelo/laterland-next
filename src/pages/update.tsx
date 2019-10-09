@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/router";
 import { Box, Button, Flex, Text } from "@rudeland/ui";
 import { Alert, Input, Loading, PageLoading } from "../components";
@@ -11,6 +11,7 @@ export default () => {
   const { user } = useAuth();
   const [tags, setTags] = useState("");
   const [description, setDescription] = useState("");
+  const tagsInput = useRef(null);
   const { data, error, loading } = useFetch(
     `/api/get?uid=${user.uid}&url=${url}&dt=${fallback_date}`
   );
@@ -40,6 +41,14 @@ export default () => {
       setTags(data.tags);
     }
   }, [data]);
+
+  useEffect(() => {
+    if (tagsInput && tagsInput.current) {
+      const inputValueLength = tagsInput.current.value.length;
+      tagsInput.current.focus();
+      tagsInput.current.setSelectionRange(inputValueLength, inputValueLength);
+    }
+  }, [tags]);
 
   if (error) return <Text>Error loading post</Text>;
 
@@ -109,6 +118,7 @@ export default () => {
             </Text>
             <Input
               value={tags}
+              ref={tagsInput}
               autoCorrect="off"
               autoCapitalize="none"
               placeholder="tags"
@@ -116,6 +126,7 @@ export default () => {
               onKeyPress={e => {
                 e.key === "Enter" && update();
               }}
+              fontWeight={0}
             />
           </Flex>
           {suggestedTagsLoading ? (
@@ -145,7 +156,7 @@ export default () => {
               onClick={deletePost}
               iconBefore={<MdDeleteForever size={20} />}
               mr={2}
-              mb={2}
+              mt={2}
             >
               Delete
             </Button>
