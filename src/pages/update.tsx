@@ -3,7 +3,7 @@ import { useRouter } from "next/router";
 import { Box, Button, Flex, Text } from "@rudeland/ui";
 import { Alert, Input, Loading, PageLoading } from "../components";
 import { useAuth, useFetch } from "../hooks";
-import { MdDone, MdClose } from "react-icons/md";
+import { MdDone, MdClose, MdDeleteForever } from "react-icons/md";
 
 export default () => {
   const router = useRouter();
@@ -24,6 +24,14 @@ export default () => {
   } = useFetch(
     `/api/update?uid=${user.uid}&url=${url}`,
     JSON.stringify({ url, description, tags, hash: data && data.hash })
+  );
+  const {
+    data: deletePostResponse,
+    loading: deletePostLoading,
+    execute: deletePost
+  } = useFetch(
+    `/api/delete?uid=${user.uid}&url=${url}`,
+    JSON.stringify({ url, hash: data && data.hash })
   );
 
   useEffect(() => {
@@ -87,7 +95,7 @@ export default () => {
                 e.key === "Enter" && update();
               }}
               fontSize={4}
-              fontWeight={2}
+              fontWeight={1}
             />
             <Text
               textSize={0}
@@ -119,6 +127,7 @@ export default () => {
                   <Button
                     appearance="default"
                     onClick={() => setTags(tags => `${tags} ${suggestedTag}`)}
+                    size="small"
                     mr={2}
                     mb={2}
                     key={suggestedTag}
@@ -129,6 +138,18 @@ export default () => {
               </Box>
             )
           )}
+          <Box alignSelf="flex-start">
+            <Button
+              appearance="default"
+              intent="danger"
+              onClick={deletePost}
+              iconBefore={<MdDeleteForever size={20} />}
+              mr={2}
+              mb={2}
+            >
+              Delete
+            </Button>
+          </Box>
         </Flex>
       )}
     </>

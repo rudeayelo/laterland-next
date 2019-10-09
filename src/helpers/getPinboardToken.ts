@@ -1,5 +1,5 @@
-import { db } from "../src/firebase";
-import { USERS_COLLECTION } from "../src/constants";
+import { db } from "../firebase";
+import { USERS_COLLECTION } from "../constants";
 
 const getPinboardToken = async ({ uid }: { uid: string }): Promise<string> => {
   const userDoc = await db.doc(`${USERS_COLLECTION}/${uid}`).get();

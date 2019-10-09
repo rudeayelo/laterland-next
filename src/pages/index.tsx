@@ -28,6 +28,8 @@ Detail.defaultProps = {
 interface PostContainerProps extends BorderProps {}
 
 const PostContainer = styled(Box)<PostContainerProps>`
+  cursor: pointer;
+
   &:not(:last-child) {
     ${border}
   }
@@ -40,20 +42,27 @@ PostContainer.defaultProps = {
   py: 2
 };
 
+const PostDescription = styled(Text)`
+  text-decoration: underline solid ${({ theme }) => theme.colors.blue.light};
+`;
+
+PostDescription.defaultProps = {
+  lineHeight: 1.6,
+  fontWeight: 1
+};
+
 const Post = ({ post }) => {
   const router = useRouter();
   const postDate = new Date(post.time);
   const postISODate = format(postDate, "yyyy-MM-dd");
 
   return (
-    <PostContainer>
-      <Text
-        onClick={() => {
-          router.push(`/update?url=${post.href}&fallback_date=${postISODate}`);
-        }}
-      >
-        {post.description}
-      </Text>
+    <PostContainer
+      onClick={() => {
+        router.push(`/update?url=${post.href}&fallback_date=${postISODate}`);
+      }}
+    >
+      <PostDescription>{post.description}</PostDescription>
       <Box>
         <Detail>{extractDomain(post.href)}</Detail>
         <Detail>{formatDistance(postDate, new Date())} ago</Detail>
@@ -63,9 +72,10 @@ const Post = ({ post }) => {
 };
 
 export default () => {
-  const { user, signout } = useAuth();
+  const { user, signout, userLoading } = useAuth();
+  console.log("userLoading", userLoading);
   const { data, error, loading } = useFetch(
-    `/api/list?uid=${user.uid}&toread=yes`
+    `/api/list?uid=${user && user.uid}&toread=yes`
   );
 
   if (error)
@@ -75,20 +85,16 @@ export default () => {
       </Text>
     );
 
-  return (
+  return userLoading || loading ? (
+    <PageLoading />
+  ) : (
     <>
-      {loading ? (
-        <PageLoading />
-      ) : (
-        <>
-          <Text as="h1" fontWeight={2} textSize={4} py={3} px={3}>
-            {data.length} unread posts
-          </Text>
-          {data.map(post => (
-            <Post post={post} key={post.id} />
-          ))}
-        </>
-      )}
+      <Text as="h1" fontWeight={2} textSize={4} py={3} px={3}>
+        {data.length} unread posts
+      </Text>
+      {data.map(post => (
+        <Post post={post} key={post.id} />
+      ))}
     </>
   );
 };

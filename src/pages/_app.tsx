@@ -37,8 +37,11 @@ const Main = ({ children }) => {
 const GlobalStyle = createGlobalStyle`
   html, body { padding: 0; margin: 0; }
 
+  html, button, input {
+    font-family: 'IBM Plex Sans', "SF UI Text", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+  }
+
   body {
-    font-family: "SF UI Text", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
     background: white;
   }
 
@@ -54,19 +57,29 @@ export default class MyApp extends App {
     return (
       <>
         <Head>
-          <link rel="shortcut icon" href="/static/favicon.ico" />
-          <link rel="apple-touch-icon" href="/static/icon-512.png" />
+          <link rel="shortcut icon" href="/favicon.ico" />
+          <link rel="apple-touch-icon" href="/icon-512.png" />
+          <link rel="manifest" href="/manifest.json" />
+          <link
+            href="https://fonts.googleapis.com/css?family=IBM+Plex+Sans:400,500,600&display=swap"
+            rel="stylesheet"
+          />
+
           <meta
             name="viewport"
             content="width=device-width, initial-scale=1, shrink-to-fit=no"
           />
           <meta name="theme-color" content="#fff" />
-          <link rel="manifest" href="static/manifest.json" />
 
           <title>Laterland</title>
         </Head>
         <GlobalStyle />
-        <ThemeProvider theme={createTheme({ accentColor: "hsl(36,80%,70%)" })}>
+        <ThemeProvider
+          theme={createTheme({
+            accentColor: "hsl(36,80%,70%)",
+            fontWeights: [400, 500, 600]
+          })}
+        >
           <UserProvider>
             <Main>
               <Component {...pageProps} />

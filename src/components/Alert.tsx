@@ -9,7 +9,7 @@ import {
   variant
 } from "styled-system";
 import { baseTheme, Flex } from "@rudeland/ui";
-import { Intent } from "../src/typings";
+import { Intent } from "../typings";
 
 export interface AlertProps
   extends BackgroundProps,
