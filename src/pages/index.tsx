@@ -5,8 +5,12 @@ import format from "date-fns/lightFormat";
 import formatDistance from "date-fns/formatDistance";
 import extractDomain from "extract-domain";
 import { Box, Button, Flex, Text } from "@rudeland/ui";
+import { motion, useMotionValue, useTransform } from "framer-motion";
+import { MdEdit } from "react-icons/md";
 import { Alert, PageLoading } from "../components";
 import { useAuth, useFetch } from "../hooks";
+
+const EDIT_POST_SWIPE_THRESHOLD = 50;
 
 const Detail = styled(Text).attrs({
   as: "span"
@@ -39,7 +43,8 @@ PostContainer.defaultProps = {
   borderBottom: "1px solid",
   borderColor: "g.90",
   px: 3,
-  py: 2
+  py: 2,
+  position: "relative"
 };
 
 const PostDescription = styled(Text)`
@@ -51,22 +56,67 @@ PostDescription.defaultProps = {
   fontWeight: 1
 };
 
+const EditIcon = styled(MdEdit)`
+  color: ${({ theme }) => theme.colors.blue.base};
+`;
+
+EditIcon.defaultProps = {
+  size: 28
+};
+
+const EditIndicator = ({ dragX }) => {
+  const x = useTransform(
+    dragX,
+    [10, 45, EDIT_POST_SWIPE_THRESHOLD],
+    [-50, -30, 0]
+  );
+
+  return (
+    <motion.div
+      style={{ x, y: "-50%", position: "absolute", top: "50%", left: 0 }}
+    >
+      <Box py={3} pl={3}>
+        <EditIcon />
+      </Box>
+    </motion.div>
+  );
+};
+
 const Post = ({ post }) => {
   const router = useRouter();
   const postDate = new Date(post.time);
   const postISODate = format(postDate, "yyyy-MM-dd");
+  const x = useMotionValue(0);
+
+  const goToUpdateView = () => {
+    router.push(`/update?url=${post.href}&fallback_date=${postISODate}`);
+  };
+
+  const goToPostHref = () => {
+    window.location.href = post.href;
+  };
 
   return (
-    <PostContainer
-      onClick={() => {
-        router.push(`/update?url=${post.href}&fallback_date=${postISODate}`);
-      }}
-    >
-      <PostDescription>{post.description}</PostDescription>
+    <PostContainer>
       <Box>
-        <Detail>{extractDomain(post.href)}</Detail>
-        <Detail>{formatDistance(postDate, new Date())} ago</Detail>
+        <EditIndicator dragX={x} />
       </Box>
+      <motion.div
+        drag="x"
+        style={{ x }}
+        dragConstraints={{ left: 0, right: 0 }}
+        onDragEnd={(_, info) =>
+          info.point.x > EDIT_POST_SWIPE_THRESHOLD && goToUpdateView()
+        }
+      >
+        <motion.div onTap={goToPostHref}>
+          <PostDescription>{post.description}</PostDescription>
+          <Box>
+            <Detail>{extractDomain(post.href)}</Detail>
+            <Detail>{formatDistance(postDate, new Date())} ago</Detail>
+          </Box>
+        </motion.div>
+      </motion.div>
     </PostContainer>
   );
 };

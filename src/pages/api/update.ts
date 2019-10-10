@@ -30,10 +30,11 @@ export default async (req, res) => {
   if (isError) {
     console.log("==> Something failed updating the post");
   } else {
-    console.log("==> Succesfully updated the post");
-    db.collection(`${USERS_COLLECTION}/${uid}/${POSTS_COLLECTION}`)
+    await db
+      .collection(`${USERS_COLLECTION}/${uid}/${POSTS_COLLECTION}`)
       .doc(hash)
       .set({ toread: "no" }, { merge: true });
+    console.log("==> Succesfully updated the post");
   }
 
   res.status(200).end(
