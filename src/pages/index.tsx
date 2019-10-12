@@ -12,7 +12,13 @@ import formatDistance from "date-fns/formatDistance";
 import extractDomain from "extract-domain";
 import { Box, Button, Flex, Text } from "@rudeland/ui";
 import { motion, useMotionValue, useTransform } from "framer-motion";
-import { MdDelete, MdDescription, MdEdit, MdLink } from "react-icons/md";
+import {
+  MdCode,
+  MdDelete,
+  MdDescription,
+  MdEdit,
+  MdLink
+} from "react-icons/md";
 import { FaYoutube, FaGithub, FaTwitter } from "react-icons/fa";
 import { Alert, Loading, PageLoading } from "../components";
 import {
@@ -47,16 +53,20 @@ Detail.defaultProps = {
 };
 
 const sourceCategories = {
-  code: {
+  github: {
     color: "g.10",
     icon: FaGithub
   },
+  code: {
+    color: "blue.dark",
+    icon: MdCode
+  },
   video: {
-    color: "red.base",
+    color: "#ff0000",
     icon: FaYoutube
   },
   tweet: {
-    color: "blue.light",
+    color: "#1da1f2",
     icon: FaTwitter
   },
   article: {
@@ -69,10 +79,16 @@ const sourceCategories = {
   }
 };
 
+// TODO: Move this to a table in Firebase
 const sourceUrls = {
   "medium.com": sourceCategories.article,
   "hackernoon.com": sourceCategories.article,
-  "github.com": sourceCategories.code,
+  "dev.to": sourceCategories.article,
+  "css-tricks.com": sourceCategories.article,
+  "codesandbox.io": sourceCategories.code,
+  "codepen.io": sourceCategories.code,
+  "github.com": sourceCategories.github,
+  "github.io": sourceCategories.github,
   "twitter.com": sourceCategories.tweet,
   "youtube.com": sourceCategories.video
 };
