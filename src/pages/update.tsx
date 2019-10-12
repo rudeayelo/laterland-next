@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/router";
 import { Box, Button, Flex, Text } from "@rudeland/ui";
-import { Alert, Input, Loading, PageLoading } from "../components";
+import { useAlert, Input, Loading, PageLoading } from "../components";
 import { useAuth, useFetch } from "../hooks";
 import { MdDone, MdClose, MdDeleteForever } from "react-icons/md";
 
@@ -9,6 +9,7 @@ export default () => {
   const router = useRouter();
   const { url, fallback_date } = router.query;
   const { user } = useAuth();
+  const { alertSuccess, alertDanger } = useAlert();
   const [tags, setTags] = useState("");
   const [description, setDescription] = useState("");
   const tagsInput = useRef(null);
@@ -50,6 +51,38 @@ export default () => {
     }
   }, [tags]);
 
+  useEffect(() => {
+    if (!updateLoading && updateResponse) {
+      if (!updateResponse.error) {
+        const redirect = setTimeout(() => {
+          router.push(`/`);
+        }, 3000);
+
+        alertSuccess(
+          <Flex alignItems="center" flex={1}>
+            <MdDone size={24} />
+            <Box ml={2}>Updated!</Box>
+            <Button
+              intent="success"
+              size="small"
+              onClick={() => clearTimeout(redirect)}
+              ml="auto"
+            >
+              Cancel redirect
+            </Button>
+          </Flex>
+        );
+      } else {
+        alertDanger(
+          <Flex alignItems="center">
+            <MdClose size={24} style={{ marginRight: 8 }} />{" "}
+            {updateResponse.data}
+          </Flex>
+        );
+      }
+    }
+  }, [updateResponse, updateLoading]);
+
   const onTagClick = (e, suggestedTag) => {
     e.stopPropagation();
     return setTags(tags => `${tags} ${suggestedTag}`);
@@ -69,29 +102,6 @@ export default () => {
           px={3}
           height="100vh"
         >
-          {updateLoading ? (
-            <Loading size={32} mb={3} />
-          ) : (
-            updateResponse && (
-              <Alert
-                intent={updateResponse.error ? "danger" : "success"}
-                alignItems="center"
-                alignSelf="flex-start"
-                mb={3}
-              >
-                {updateResponse.error ? (
-                  <>
-                    <MdClose size={24} style={{ marginRight: 8 }} />{" "}
-                    {updateResponse.data}
-                  </>
-                ) : (
-                  <>
-                    <MdDone size={24} style={{ marginRight: 8 }} /> Updated!
-                  </>
-                )}
-              </Alert>
-            )
-          )}
           <Flex
             as="form"
             flexDirection="column"

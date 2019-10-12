@@ -3,7 +3,7 @@ import Head from "next/head";
 import React from "react";
 import { createGlobalStyle, ThemeProvider } from "styled-components";
 import { Box, Button, createTheme, Flex } from "@rudeland/ui";
-import { UserProvider, PageLoading } from "../components";
+import { AlertProvider, PageLoading, UserProvider } from "../components";
 import { useAuth } from "../hooks/useAuth";
 import { MdPerson } from "react-icons/md";
 
@@ -83,9 +83,11 @@ export default class MyApp extends App {
           })}
         >
           <UserProvider>
-            <Main>
-              <Component {...pageProps} />
-            </Main>
+            <AlertProvider>
+              <Main>
+                <Component {...pageProps} />
+              </Main>
+            </AlertProvider>
           </UserProvider>
         </ThemeProvider>
       </>
