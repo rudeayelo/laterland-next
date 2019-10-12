@@ -1,13 +1,19 @@
 import { useEffect, useRef } from "react";
 import { useRouter } from "next/router";
 import styled from "styled-components";
-import { border, BorderProps } from "styled-system";
+import {
+  border,
+  BorderProps,
+  alignItems,
+  AlignItemsProps
+} from "styled-system";
 import format from "date-fns/lightFormat";
 import formatDistance from "date-fns/formatDistance";
 import extractDomain from "extract-domain";
 import { Box, Button, Flex, Text } from "@rudeland/ui";
 import { motion, useMotionValue, useTransform } from "framer-motion";
-import { MdDelete, MdEdit } from "react-icons/md";
+import { MdDelete, MdDescription, MdEdit, MdLink } from "react-icons/md";
+import { FaYoutube, FaGithub, FaTwitter } from "react-icons/fa";
 import { Alert, Loading, PageLoading } from "../components";
 import {
   useAuth,
@@ -19,21 +25,74 @@ import {
 const EDIT_POST_SWIPE_THRESHOLD = 50;
 const DELETE_POST_SWIPE_THRESHOLD = -50;
 
+interface DetailProps extends AlignItemsProps {}
+
 const Detail = styled(Text).attrs({
   as: "span"
-})`
-  &:not(:last-child) {
-    margin-right: 4px;
-    &::after {
-      content: " /";
+})<DetailProps>`
+  &:not(:first-child) {
+    margin-left: ${({ theme }) => theme.space[1]}px;
+
+    &::before {
+      content: "/ ";
     }
   }
+
+  ${alignItems}
 `;
 
 Detail.defaultProps = {
   textSize: 0,
-  color: "g.50",
-  mb: 3
+  color: "g.50"
+};
+
+const sourceCategories = {
+  code: {
+    color: "g.10",
+    icon: FaGithub
+  },
+  video: {
+    color: "red.base",
+    icon: FaYoutube
+  },
+  tweet: {
+    color: "blue.light",
+    icon: FaTwitter
+  },
+  article: {
+    color: "green.light",
+    icon: MdDescription
+  },
+  other: {
+    color: "g.50",
+    icon: MdLink
+  }
+};
+
+const sourceUrls = {
+  "medium.com": sourceCategories.article,
+  "hackernoon.com": sourceCategories.article,
+  "github.com": sourceCategories.code,
+  "twitter.com": sourceCategories.tweet,
+  "youtube.com": sourceCategories.video
+};
+
+const SourceUrl = ({ children }) => {
+  const Icon = sourceUrls[children]
+    ? sourceUrls[children].icon
+    : sourceCategories.other.icon;
+  const color = sourceUrls[children]
+    ? sourceUrls[children].color
+    : sourceCategories.other.color;
+
+  return (
+    <Detail color={color} display="inline-flex" alignItems="center">
+      <Icon size={14} style={{ display: "inline-block" }} />
+      <Box display="inline" ml={1}>
+        {children}
+      </Box>
+    </Detail>
+  );
 };
 
 interface PostContainerProps extends BorderProps {}
@@ -158,10 +217,10 @@ const Post = ({ post }) => {
         ) : (
           <motion.div onTap={goToPostHref}>
             <PostDescription>{post.description}</PostDescription>
-            <Box>
-              <Detail>{extractDomain(post.href)}</Detail>
+            <Flex my={1} alignItems="center">
+              <SourceUrl>{extractDomain(post.href)}</SourceUrl>
               <Detail>{formatDistance(postDate, new Date())} ago</Detail>
-            </Box>
+            </Flex>
           </motion.div>
         )}
       </motion.div>
