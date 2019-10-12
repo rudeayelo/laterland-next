@@ -22,12 +22,13 @@ export default async (req, res) => {
   const isError = result_code !== "done";
 
   if (isError) {
-    console.log("==> Something failed deleting the post");
+    console.log("==> Something failed deleting the post:", result_code);
   } else {
-    console.log("==> Succesfully deleted the post");
-    db.collection(`${USERS_COLLECTION}/${uid}/${POSTS_COLLECTION}`)
+    await db
+      .collection(`${USERS_COLLECTION}/${uid}/${POSTS_COLLECTION}`)
       .doc(hash)
       .delete();
+    console.log("==> Succesfully deleted the post");
   }
 
   res.status(200).end(
