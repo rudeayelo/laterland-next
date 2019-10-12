@@ -21,7 +21,7 @@ export default async (req, res) => {
 
   const isError = result_code !== "done";
 
-  if (isError) {
+  if (isError && result_code !== "item not found") {
     console.log("==> Something failed deleting the post:", result_code);
   } else {
     await db
