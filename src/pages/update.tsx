@@ -50,6 +50,11 @@ export default () => {
     }
   }, [tags]);
 
+  const onTagClick = (e, suggestedTag) => {
+    e.stopPropagation();
+    return setTags(tags => `${tags} ${suggestedTag}`);
+  };
+
   if (error) return <Text>Error loading post</Text>;
 
   return (
@@ -137,7 +142,7 @@ export default () => {
                 {suggestedTags.map(suggestedTag => (
                   <Button
                     appearance="default"
-                    onClick={() => setTags(tags => `${tags} ${suggestedTag}`)}
+                    onClick={e => onTagClick(e, suggestedTag)}
                     size="small"
                     mr={2}
                     mb={2}
