@@ -115,6 +115,7 @@ interface PostContainerProps extends BorderProps {}
 
 const PostContainer = styled(Box)<PostContainerProps>`
   cursor: pointer;
+  overflow: hidden;
 
   &:not(:last-child) {
     ${border}
@@ -138,9 +139,7 @@ PostDescription.defaultProps = {
   fontWeight: 1
 };
 
-const EditIcon = styled(MdEdit)`
-  color: ${({ theme }) => theme.colors.blue.base};
-`;
+const EditIcon = styled(MdEdit)``;
 
 EditIcon.defaultProps = {
   size: 28
@@ -152,10 +151,15 @@ const EditIndicator = ({ dragX }) => {
     [10, 45, EDIT_POST_SWIPE_THRESHOLD],
     [-44, -24, 0]
   );
+  const color = useTransform(
+    dragX,
+    [10, 45, EDIT_POST_SWIPE_THRESHOLD],
+    ["hsl(210,0%,90%)", "hsl(210,10%,80%)", "hsl(210,100%,60%)"]
+  );
 
   return (
     <motion.div
-      style={{ x, y: "-50%", position: "absolute", top: "50%", left: 0 }}
+      style={{ color, x, y: "-50%", position: "absolute", top: "50%", left: 0 }}
     >
       <Box py={3} pl={3}>
         <EditIcon />
@@ -164,9 +168,7 @@ const EditIndicator = ({ dragX }) => {
   );
 };
 
-const DeleteIcon = styled(MdDelete)`
-  color: ${({ theme }) => theme.colors.red.base};
-`;
+const DeleteIcon = styled(MdDelete)``;
 
 DeleteIcon.defaultProps = {
   size: 28
@@ -176,12 +178,24 @@ const DeleteIndicator = ({ dragX }) => {
   const x = useTransform(
     dragX,
     [-10, -45, DELETE_POST_SWIPE_THRESHOLD],
-    [0, -20, -44]
+    [44, 24, 0]
+  );
+  const color = useTransform(
+    dragX,
+    [-10, -45, DELETE_POST_SWIPE_THRESHOLD],
+    ["hsl(10,0%,90%)", "hsl(10,10%,80%)", "hsl(10,70%,45%)"]
   );
 
   return (
     <motion.div
-      style={{ x, y: "-50%", position: "absolute", top: "50%", left: "100%" }}
+      style={{
+        color,
+        x,
+        y: "-50%",
+        position: "absolute",
+        top: "50%",
+        right: 0
+      }}
     >
       <Box py={3} pr={3}>
         <DeleteIcon />
