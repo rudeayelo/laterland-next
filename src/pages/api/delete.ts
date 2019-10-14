@@ -24,11 +24,18 @@ export default async (req, res) => {
   if (isError && result_code !== "item not found") {
     console.log("==> Something failed deleting the post:", result_code);
   } else {
-    await db
-      .collection(`${USERS_COLLECTION}/${uid}/${POSTS_COLLECTION}`)
-      .doc(hash)
-      .delete();
-    console.log("==> Succesfully deleted the post");
+    try {
+      await db
+        .collection(`${USERS_COLLECTION}/${uid}/${POSTS_COLLECTION}`)
+        .doc(hash)
+        .delete();
+      console.log("==> Succesfully deleted the post");
+    } catch (error) {
+      console.warn(
+        "==> Deleted the post in Pinboard but something failed in Firebase:",
+        error
+      );
+    }
   }
 
   res.status(200).end(
