@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/router";
 import { Box, Button, Flex, Text } from "@rudeland/ui";
-import { motion } from "framer-motion"
+import { motion } from "framer-motion";
 import { useAlert, Input, Loading, PageLoading } from "../components";
 import { useAuth, useFetch } from "../hooks";
 import { MdDone, MdClose } from "react-icons/md";
@@ -117,89 +117,90 @@ export default () => {
             opacity: 0
           }}
           animate={{ opacity: 1, x: 0 }}
-        >
-        <Flex
-          flexDirection="column"
-          justifyContent="flex-end"
-          pb={3}
-          px={3}
-          height="100vh"
+          transition={{ ease: "easeOut", duration: 0.2 }}
         >
           <Flex
-            as="form"
             flexDirection="column"
-            onSubmit={e => {
-              e.preventDefault();
-              update();
-            }}
+            justifyContent="flex-end"
+            pb={3}
+            px={3}
+            height="100vh"
           >
-            <Input
-              value={description}
-              autoCorrect="off"
-              autoCapitalize="none"
-              onChange={e => setDescription(e.target.value)}
-              onKeyPress={e => {
-                e.key === "Enter" && update();
-              }}
-              fontSize={4}
-              fontWeight={1}
-            />
-            <Text
-              textSize={0}
-              color="blue.base"
-              px={2}
-              onClick={() => {
-                window.location.href = data.href;
+            <Flex
+              as="form"
+              flexDirection="column"
+              onSubmit={e => {
+                e.preventDefault();
+                update();
               }}
             >
-              {data.href}
-            </Text>
-            <Input
-              value={tags}
-              ref={tagsInput}
-              autoCorrect="off"
-              autoCapitalize="none"
-              placeholder="tags"
-              onChange={e => setTags(e.target.value)}
-              onKeyPress={e => {
-                e.key === "Enter" && onUpdate();
-              }}
-              fontWeight={0}
-            />
+              <Input
+                value={description}
+                autoCorrect="off"
+                autoCapitalize="none"
+                onChange={e => setDescription(e.target.value)}
+                onKeyPress={e => {
+                  e.key === "Enter" && update();
+                }}
+                fontSize={4}
+                fontWeight={1}
+              />
+              <Text
+                textSize={0}
+                color="blue.base"
+                px={2}
+                onClick={() => {
+                  window.location.href = data.href;
+                }}
+              >
+                {data.href}
+              </Text>
+              <Input
+                value={tags}
+                ref={tagsInput}
+                autoCorrect="off"
+                autoCapitalize="none"
+                placeholder="tags"
+                onChange={e => setTags(e.target.value)}
+                onKeyPress={e => {
+                  e.key === "Enter" && onUpdate();
+                }}
+                fontWeight={0}
+              />
+            </Flex>
+            {suggestedTagsLoading ? (
+              <Loading size={32} pt={3} />
+            ) : (
+              !!suggestedTags.length && (
+                <Box pt={3}>
+                  {suggestedTags.map(suggestedTag => (
+                    <Button
+                      appearance="default"
+                      onClick={e => onTagClick(e, suggestedTag)}
+                      size="small"
+                      mr={2}
+                      mb={2}
+                      key={suggestedTag}
+                    >
+                      {suggestedTag}
+                    </Button>
+                  ))}
+                </Box>
+              )
+            )}
+            <Box alignSelf="flex-start">
+              <Button
+                appearance="default"
+                intent="danger"
+                onClick={deletePost}
+                iconBefore={<MdClose size={20} />}
+                mr={2}
+                mt={2}
+              >
+                Delete
+              </Button>
+            </Box>
           </Flex>
-          {suggestedTagsLoading ? (
-            <Loading size={32} pt={3} />
-          ) : (
-            !!suggestedTags.length && (
-              <Box pt={3}>
-                {suggestedTags.map(suggestedTag => (
-                  <Button
-                    appearance="default"
-                    onClick={e => onTagClick(e, suggestedTag)}
-                    size="small"
-                    mr={2}
-                    mb={2}
-                    key={suggestedTag}
-                  >
-                    {suggestedTag}
-                  </Button>
-                ))}
-              </Box>
-            )
-          )}
-          <Box alignSelf="flex-start">
-            <Button
-              appearance="default"
-              intent="danger"
-              onClick={deletePost}
-              iconBefore={<MdClose size={20} />}
-              mr={2}
-              mt={2}
-            >
-              Delete
-            </Button>
-          </Box>
-        </Flex>
         </motion.div>
       )}
     </>

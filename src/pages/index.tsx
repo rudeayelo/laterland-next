@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/router";
 import styled from "styled-components";
 import {
@@ -221,6 +221,7 @@ const Post = ({ post }) => {
   const { user } = useAuth();
   const { alertSuccess } = useAlert();
   const x = useMotionValue(0);
+  const [editing, setEditing] = useState(false);
   const {
     data: deletePostResponse,
     loading: deletePostLoading,
@@ -252,6 +253,9 @@ const Post = ({ post }) => {
       height: 0,
       paddingTop: 0,
       paddingBottom: 0
+    },
+    editing: {
+      x: "50%"
     }
   };
 
@@ -259,6 +263,7 @@ const Post = ({ post }) => {
   const postISODate = format(postDate, "yyyy-MM-dd");
 
   const goToUpdateView = () => {
+    setEditing(true);
     router.push(`/update?url=${post.href}&fallback_date=${postISODate}`);
   };
 
@@ -278,18 +283,19 @@ const Post = ({ post }) => {
           info.point.x > EDIT_POST_SWIPE_THRESHOLD && goToUpdateView();
           info.point.x < DELETE_POST_SWIPE_THRESHOLD && deletePost();
         }}
+        variants={variants}
+        animate={
+          deletePostLoading
+            ? "deleting"
+            : deletePostResponse && !deletePostResponse.error
+            ? "deleted"
+            : editing
+            ? "editing"
+            : "default"
+        }
+        transition={{ ease: "easeOut", duration: 0.2 }}
       >
-        <PostContent
-          onTap={goToPostHref}
-          variants={variants}
-          animate={
-            deletePostLoading
-              ? "deleting"
-              : deletePostResponse && !deletePostResponse.error
-              ? "deleted"
-              : "default"
-          }
-        >
+        <PostContent onTap={goToPostHref}>
           <PostDescription>{post.description}</PostDescription>
           <Flex my={1} alignItems="center">
             <SourceUrl>{extractDomain(post.href)}</SourceUrl>
@@ -342,6 +348,7 @@ export default () => {
         x: 30,
         opacity: 0
       }}
+      transition={{ ease: "easeOut", duration: 0.2 }}
     >
       <Text as="h1" fontWeight={2} textSize={4} py={3} px={3}>
         {data.length} unread posts
