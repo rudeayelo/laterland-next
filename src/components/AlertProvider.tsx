@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import { Alert } from "./Alert";
 
 type Alert = {
-  content: JSX.Element;
+  content: React.ReactNode;
   type: "default" | "success" | "danger" | "warning";
 };
 
@@ -43,7 +43,8 @@ const AlertProvider = ({ children }) => {
           position: "fixed",
           top: 0,
           left: 0,
-          width: "100%"
+          width: "100%",
+          zIndex: 10
         }}
       >
         {alert && (
@@ -60,26 +61,34 @@ const AlertProvider = ({ children }) => {
 const useAlert = () => {
   const { setAlert, setActive } = useContext(AlertContext);
 
-  const activate = (timeout: number = 3000) => {
+  const DEFAULT_TIMEOUT = 3000;
+  let timeoutFn;
+
+  const activate = (timeout: number = DEFAULT_TIMEOUT) => {
     setActive(true);
-    setTimeout(() => setActive(false), timeout);
+    timeoutFn = setTimeout(() => setActive(false), timeout);
   };
 
-  const alertInfo = (content: JSX.Element) => {
+  const deactivate = (timeout: number = DEFAULT_TIMEOUT) => {
+    clearTimeout(timeoutFn);
+    setActive(false);
+    setAlert(null);
+  };
+
+  const alertInfo = (content: React.ReactNode) => {
     setAlert({ content, type: "default" });
     activate();
   };
-  const alertSuccess = (content: JSX.Element) => {
+  const alertSuccess = (content: React.ReactNode) => {
     setAlert({ content, type: "success" });
     activate();
   };
-  const alertDanger = (content: JSX.Element) => {
+  const alertDanger = (content: React.ReactNode) => {
     setAlert({ content, type: "danger" });
     activate();
   };
   const closeAlert = () => {
-    setActive(false);
-    setAlert(null);
+    deactivate();
   };
 
   return { alertInfo, alertSuccess, alertDanger, closeAlert };

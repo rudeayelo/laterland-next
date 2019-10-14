@@ -3,6 +3,7 @@ import Head from "next/head";
 import React from "react";
 import { createGlobalStyle, ThemeProvider } from "styled-components";
 import { Box, Button, createTheme, Flex } from "@rudeland/ui";
+import { AnimatePresence } from "framer-motion";
 import { AlertProvider, PageLoading, UserProvider } from "../components";
 import { useAuth } from "../hooks/useAuth";
 import { MdPerson } from "react-icons/md";
@@ -54,7 +55,7 @@ const GlobalStyle = createGlobalStyle`
 
 export default class MyApp extends App {
   render() {
-    const { Component, pageProps } = this.props;
+    const { Component, pageProps, router } = this.props;
 
     return (
       <>
@@ -85,7 +86,9 @@ export default class MyApp extends App {
           <UserProvider>
             <AlertProvider>
               <Main>
-                <Component {...pageProps} />
+                <AnimatePresence exitBeforeEnter>
+                  <Component {...pageProps} key={router.route} />
+                </AnimatePresence>
               </Main>
             </AlertProvider>
           </UserProvider>

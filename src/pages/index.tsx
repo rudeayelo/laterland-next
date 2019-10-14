@@ -5,7 +5,9 @@ import {
   border,
   BorderProps,
   alignItems,
-  AlignItemsProps
+  AlignItemsProps,
+  space,
+  SpaceProps
 } from "styled-system";
 import format from "date-fns/lightFormat";
 import formatDistance from "date-fns/formatDistance";
@@ -17,10 +19,11 @@ import {
   MdDelete,
   MdDescription,
   MdEdit,
-  MdLink
+  MdLink,
+  MdClose
 } from "react-icons/md";
 import { FaYoutube, FaGithub, FaTwitter } from "react-icons/fa";
-import { Alert, Loading, PageLoading } from "../components";
+import { Alert, useAlert, Loading, PageLoading } from "../components";
 import {
   useAuth,
   useFetch,
@@ -125,9 +128,18 @@ const PostContainer = styled(Box)<PostContainerProps>`
 PostContainer.defaultProps = {
   borderBottom: "1px solid",
   borderColor: "g.90",
-  px: 3,
-  py: 2,
   position: "relative"
+};
+
+interface PostContentProps extends SpaceProps {}
+
+const PostContent = styled(motion.div)<PostContentProps>`
+  ${space}
+`;
+
+PostContent.defaultProps = {
+  px: 3,
+  py: 2
 };
 
 const PostDescription = styled(Text)`
@@ -207,8 +219,7 @@ const DeleteIndicator = ({ dragX }) => {
 const Post = ({ post }) => {
   const router = useRouter();
   const { user } = useAuth();
-  const postDate = new Date(post.time);
-  const postISODate = format(postDate, "yyyy-MM-dd");
+  const { alertSuccess } = useAlert();
   const x = useMotionValue(0);
   const {
     data: deletePostResponse,
@@ -218,6 +229,34 @@ const Post = ({ post }) => {
     `/api/delete?uid=${user.uid}&url=${post.href}`,
     JSON.stringify({ url: post.href, hash: post.id })
   );
+
+  useEffect(() => {
+    if (!deletePostLoading && deletePostResponse && !deletePostResponse.error) {
+      alertSuccess(
+        <Flex alignItems="center" flex={1}>
+          <MdClose size={24} />
+          <Box ml={2}>Post deleted</Box>
+        </Flex>
+      );
+    }
+  }, [deletePostLoading, deletePostResponse]);
+
+  const variants = {
+    default: {
+      opacity: 1
+    },
+    deleting: {
+      opacity: 0.5
+    },
+    deleted: {
+      height: 0,
+      paddingTop: 0,
+      paddingBottom: 0
+    }
+  };
+
+  const postDate = new Date(post.time);
+  const postISODate = format(postDate, "yyyy-MM-dd");
 
   const goToUpdateView = () => {
     router.push(`/update?url=${post.href}&fallback_date=${postISODate}`);
@@ -240,19 +279,23 @@ const Post = ({ post }) => {
           info.point.x < DELETE_POST_SWIPE_THRESHOLD && deletePost();
         }}
       >
-        {deletePostLoading ? (
-          <Loading size={32} />
-        ) : deletePostResponse && !deletePostResponse.error ? (
-          <Text p={3}>Post deleted</Text>
-        ) : (
-          <motion.div onTap={goToPostHref}>
-            <PostDescription>{post.description}</PostDescription>
-            <Flex my={1} alignItems="center">
-              <SourceUrl>{extractDomain(post.href)}</SourceUrl>
-              <Detail>{formatDistance(postDate, new Date())} ago</Detail>
-            </Flex>
-          </motion.div>
-        )}
+        <PostContent
+          onTap={goToPostHref}
+          variants={variants}
+          animate={
+            deletePostLoading
+              ? "deleting"
+              : deletePostResponse && !deletePostResponse.error
+              ? "deleted"
+              : "default"
+          }
+        >
+          <PostDescription>{post.description}</PostDescription>
+          <Flex my={1} alignItems="center">
+            <SourceUrl>{extractDomain(post.href)}</SourceUrl>
+            <Detail>{formatDistance(postDate, new Date())} ago</Detail>
+          </Flex>
+        </PostContent>
       </motion.div>
     </PostContainer>
   );
@@ -293,13 +336,19 @@ export default () => {
   return loading ? (
     <PageLoading />
   ) : (
-    <>
+    <motion.div
+      initial={{ opacity: 1 }}
+      exit={{
+        x: 30,
+        opacity: 0
+      }}
+    >
       <Text as="h1" fontWeight={2} textSize={4} py={3} px={3}>
         {data.length} unread posts
       </Text>
       {data.map(post => (
         <Post post={post} key={post.id} />
       ))}
-    </>
+    </motion.div>
   );
 };

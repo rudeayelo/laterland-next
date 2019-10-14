@@ -1,15 +1,16 @@
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/router";
 import { Box, Button, Flex, Text } from "@rudeland/ui";
+import { motion } from "framer-motion"
 import { useAlert, Input, Loading, PageLoading } from "../components";
 import { useAuth, useFetch } from "../hooks";
-import { MdDone, MdClose, MdDeleteForever } from "react-icons/md";
+import { MdDone, MdClose } from "react-icons/md";
 
 export default () => {
   const router = useRouter();
   const { url, fallback_date } = router.query;
   const { user } = useAuth();
-  const { alertSuccess, alertDanger } = useAlert();
+  const { alertInfo, alertSuccess, alertDanger, closeAlert } = useAlert();
   const [tags, setTags] = useState("");
   const [description, setDescription] = useState("");
   const tagsInput = useRef(null);
@@ -58,6 +59,7 @@ export default () => {
           router.push(`/`);
         }, 3000);
 
+        closeAlert();
         alertSuccess(
           <Flex alignItems="center" flex={1}>
             <MdDone size={24} />
@@ -73,6 +75,7 @@ export default () => {
           </Flex>
         );
       } else {
+        closeAlert();
         alertDanger(
           <Flex alignItems="center">
             <MdClose size={24} style={{ marginRight: 8 }} />{" "}
@@ -88,6 +91,16 @@ export default () => {
     return setTags(tags => `${tags} ${suggestedTag}`);
   };
 
+  const onUpdate = () => {
+    alertInfo(
+      <Flex alignItems="center">
+        <Loading size={32} ml={2} />
+        Updating...
+      </Flex>
+    );
+    update();
+  };
+
   if (error) return <Text>Error loading post</Text>;
 
   return (
@@ -95,6 +108,16 @@ export default () => {
       {loading ? (
         <PageLoading />
       ) : (
+        <motion.div
+          initial={{
+            x: 30,
+            opacity: 0
+          }}
+          exit={{
+            opacity: 0
+          }}
+          animate={{ opacity: 1, x: 0 }}
+        >
         <Flex
           flexDirection="column"
           justifyContent="flex-end"
@@ -139,7 +162,7 @@ export default () => {
               placeholder="tags"
               onChange={e => setTags(e.target.value)}
               onKeyPress={e => {
-                e.key === "Enter" && update();
+                e.key === "Enter" && onUpdate();
               }}
               fontWeight={0}
             />
@@ -169,7 +192,7 @@ export default () => {
               appearance="default"
               intent="danger"
               onClick={deletePost}
-              iconBefore={<MdDeleteForever size={20} />}
+              iconBefore={<MdClose size={20} />}
               mr={2}
               mt={2}
             >
@@ -177,6 +200,7 @@ export default () => {
             </Button>
           </Box>
         </Flex>
+        </motion.div>
       )}
     </>
   );
