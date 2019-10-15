@@ -12,7 +12,7 @@ import {
 import format from "date-fns/lightFormat";
 import formatDistance from "date-fns/formatDistance";
 import extractDomain from "extract-domain";
-import { Box, Flex, Text } from "@rudeland/ui";
+import { Box, Button, Flex, Text } from "@rudeland/ui";
 import { motion, useMotionValue, useTransform } from "framer-motion";
 import {
   MdCode,
@@ -25,7 +25,7 @@ import {
 } from "react-icons/md";
 import { FaYoutube, FaGithub, FaTwitter } from "react-icons/fa";
 import { Alert, useAlert, PageLoading } from "../components";
-import { useApi, useLocalStorage, useScrollYPosition } from "../hooks";
+import { useApi, useAuth, useLocalStorage, useScrollYPosition } from "../hooks";
 
 const EDIT_POST_SWIPE_THRESHOLD = 50;
 const DELETE_POST_SWIPE_THRESHOLD = -50;
@@ -317,6 +317,7 @@ const Post = ({ post }) => {
 };
 
 export default () => {
+  const { signout } = useAuth();
   const [scrollPos, setScrollPos] = useLocalStorage("scrollPos", 0);
   const scrollYPos = useScrollYPosition();
   const isAfterMount = useRef(null);
@@ -341,7 +342,10 @@ export default () => {
   if (error)
     return (
       <Alert intent="danger" alignItems="center" alignSelf="flex-start">
-        Error loading posts
+        <Text>Error loading posts</Text>
+        <Button onClick={signout} intent="danger" mt={2}>
+          Try signin out
+        </Button>
       </Alert>
     );
 
