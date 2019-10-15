@@ -341,9 +341,14 @@ export default () => {
 
   if (error)
     return (
-      <Alert intent="danger" alignItems="center" alignSelf="flex-start">
+      <Alert
+        intent="danger"
+        alignItems="center"
+        justifyContent="space-between"
+        m={3}
+      >
         <Text>Error loading posts</Text>
-        <Button onClick={signout} intent="danger" mt={2}>
+        <Button onClick={signout} intent="danger" ml="auto" size="small">
           Try signin out
         </Button>
       </Alert>
