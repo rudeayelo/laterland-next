@@ -1,13 +1,17 @@
 import { useState, useEffect, useRef } from "react";
 
-const useFetch = (url: string, body?: string) => {
+const useFetch = (
+  url: string,
+  { body, lazy = false }: { body?: string; lazy?: boolean }
+) => {
   const [data, setData] = useState(null);
   const [error, setError] = useState(null);
-  const [loading, setLoading] = useState(Boolean(url) && !body);
+  const [loading, setLoading] = useState(Boolean(url) && !lazy);
   const proceed = useRef(true);
 
   const execute = async () => {
     setLoading(true);
+
     try {
       const res = await fetch(url, body && { method: "POST", body });
       const response = await res.json();
@@ -25,8 +29,7 @@ const useFetch = (url: string, body?: string) => {
     setData(null);
     setError(null);
     setLoading(Boolean(url) && !body);
-
-    url && !body && execute();
+    url && !lazy && execute();
 
     return () => (proceed.current = false);
   }, [url]);

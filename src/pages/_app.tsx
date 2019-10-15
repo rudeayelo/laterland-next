@@ -9,9 +9,9 @@ import { useAuth } from "../hooks/useAuth";
 import { MdPerson } from "react-icons/md";
 
 const Main = ({ children }) => {
-  const { user, signin, userLoading } = useAuth();
+  const { user, signin } = useAuth();
 
-  if (userLoading) return <PageLoading />;
+  if (user.isLoading) return <PageLoading />;
 
   if (!user.isSignedIn)
     return (

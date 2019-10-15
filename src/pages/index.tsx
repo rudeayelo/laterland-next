@@ -12,24 +12,20 @@ import {
 import format from "date-fns/lightFormat";
 import formatDistance from "date-fns/formatDistance";
 import extractDomain from "extract-domain";
-import { Box, Button, Flex, Text } from "@rudeland/ui";
+import { Box, Flex, Text } from "@rudeland/ui";
 import { motion, useMotionValue, useTransform } from "framer-motion";
 import {
   MdCode,
   MdDelete,
   MdDescription,
   MdEdit,
+  MdError,
   MdLink,
   MdClose
 } from "react-icons/md";
 import { FaYoutube, FaGithub, FaTwitter } from "react-icons/fa";
-import { Alert, useAlert, Loading, PageLoading } from "../components";
-import {
-  useAuth,
-  useFetch,
-  useLocalStorage,
-  useScrollYPosition
-} from "../hooks";
+import { Alert, useAlert, PageLoading } from "../components";
+import { useApi, useLocalStorage, useScrollYPosition } from "../hooks";
 
 const EDIT_POST_SWIPE_THRESHOLD = 50;
 const DELETE_POST_SWIPE_THRESHOLD = -50;
@@ -218,29 +214,42 @@ const DeleteIndicator = ({ dragX }) => {
 
 const Post = ({ post }) => {
   const router = useRouter();
-  const { user } = useAuth();
-  const { alertSuccess } = useAlert();
+  const { alertSuccess, alertDanger } = useAlert();
   const x = useMotionValue(0);
   const [editing, setEditing] = useState(false);
-  const {
-    data: deletePostResponse,
-    loading: deletePostLoading,
-    execute: deletePost
-  } = useFetch(
-    `/api/delete?uid=${user.uid}&url=${post.href}`,
-    JSON.stringify({ url: post.href, hash: post.id })
-  );
+  const { data, error, loading, execute: deletePost } = useApi(`/delete`, {
+    body: { url: post.href, hash: post.id },
+    lazy: true
+  });
 
   useEffect(() => {
-    if (!deletePostLoading && deletePostResponse && !deletePostResponse.error) {
+    if (!loading && data && !data.error) {
       alertSuccess(
         <Flex alignItems="center" flex={1}>
           <MdClose size={24} />
-          <Box ml={2}>Post deleted</Box>
+          <Box ml={2}>
+            <Text>Post deleted successfuly</Text>
+          </Box>
         </Flex>
       );
     }
-  }, [deletePostLoading, deletePostResponse]);
+  }, [loading, data]);
+
+  useEffect(() => {
+    if (error || (data && data.error)) {
+      console.log("error", error);
+      console.log("data.error", data && data.error);
+      alertDanger(
+        <Flex alignItems="center" flex={1}>
+          <MdError size={24} />
+          <Box ml={2}>
+            <Text>Error deleting the post:</Text>
+            <Text textSize={1}>{error || data.error}</Text>
+          </Box>
+        </Flex>
+      );
+    }
+  }, [error, data]);
 
   const variants = {
     default: {
@@ -285,9 +294,9 @@ const Post = ({ post }) => {
         }}
         variants={variants}
         animate={
-          deletePostLoading
+          loading
             ? "deleting"
-            : deletePostResponse && !deletePostResponse.error
+            : data && !data.error
             ? "deleted"
             : editing
             ? "editing"
@@ -308,13 +317,10 @@ const Post = ({ post }) => {
 };
 
 export default () => {
-  const { user } = useAuth();
   const [scrollPos, setScrollPos] = useLocalStorage("scrollPos", 0);
   const scrollYPos = useScrollYPosition();
   const isAfterMount = useRef(null);
-  const { data, error, loading } = useFetch(
-    `/api/list?uid=${user.uid}&toread=yes`
-  );
+  const { data, error, loading } = useApi(`/list`, { body: { toread: "yes" } });
 
   useEffect(() => {
     if (isAfterMount.current) {

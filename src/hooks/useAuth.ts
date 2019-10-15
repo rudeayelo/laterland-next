@@ -1,9 +1,9 @@
 import { useContext, useState } from "react";
-import firebase from "../firebase";
+import firebase from "../firebase-client";
 import { UserContext } from "../components";
 
 const useAuth = () => {
-  const { user, setId, setSignedOut, userLoading } = useContext(UserContext);
+  const { user, setSignedOut } = useContext(UserContext);
 
   const authProvider = new firebase.auth.GoogleAuthProvider();
 
@@ -17,14 +17,13 @@ const useAuth = () => {
       .signOut()
       .then(function() {
         setSignedOut();
-        setId(null);
       })
       .catch(error => {
         console.warn("==> Error signing out the user:", error);
       });
   };
 
-  return { user, signin, signout, userLoading };
+  return { user, signin, signout };
 };
 
 export { useAuth };

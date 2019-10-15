@@ -1,10 +1,13 @@
 import fetch from "isomorphic-unfetch";
+import firebase from "../../firebase-admin";
 import { getPinboardToken, pinboardEndpoint } from "../../helpers";
 
 export default async (req, res) => {
   res.setHeader("Content-Type", "application/json");
 
-  const { url, uid } = req.query;
+  const { userToken, url } = JSON.parse(req.body);
+
+  const { uid } = await firebase.auth().verifyIdToken(userToken);
 
   const token = await getPinboardToken({ uid });
 

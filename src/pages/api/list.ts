@@ -1,8 +1,8 @@
 import fetch from "isomorphic-unfetch";
 import differenceInMinutes from "date-fns/differenceInMinutes";
 import formatDistanceToNow from "date-fns/formatDistanceToNow";
-import { db } from "../../firebase";
-import { pinboardEndpoint } from "../../helpers/pinboardEndpoint";
+import firebase, { db } from "../../firebase-admin";
+import { getPinboardToken, pinboardEndpoint } from "../../helpers";
 import { USERS_COLLECTION, POSTS_COLLECTION } from "../../constants";
 import { Post, PublicPost, UID } from "../../typings";
 
@@ -110,16 +110,20 @@ const updatePosts = async ({
     batch.set(postsDoc, post);
   });
 
-  return batch.commit();
+  await batch.commit();
+
+  return;
 };
 
 export default async (req, res) => {
   res.setHeader("Content-Type", "application/json");
 
-  const { uid, toread } = req.query;
+  const { userToken, toread } = JSON.parse(req.body);
+
+  const { uid } = await firebase.auth().verifyIdToken(userToken);
 
   const userDoc = await db.doc(`${USERS_COLLECTION}/${uid}`).get();
-  const pinboardToken = userDoc && userDoc.data().pinboardToken;
+  const pinboardToken = await getPinboardToken({ uid });
   const lastPinboardUpdate = await fetchLastUpdate({ token: pinboardToken });
   const lastStoredUpdateDoc = userDoc && userDoc.data().lastUpdate;
   const lastStoredUpdate = new Date(

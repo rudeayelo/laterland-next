@@ -13,6 +13,7 @@
     "date-fns": "2.4.1",
     "extract-domain": "2.2.1",
     "firebase": "7.1.0",
+    "firebase-admin": "8.6.0",
     "framer-motion": "1.6.10",
     "graphql-tag": "2.10.1",
     "isomorphic-unfetch": "3.0.0",

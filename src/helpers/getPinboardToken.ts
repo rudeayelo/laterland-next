@@ -1,4 +1,4 @@
-import { db } from "../firebase";
+import { db } from "../firebase-admin";
 import { USERS_COLLECTION } from "../constants";
 
 const getPinboardToken = async ({ uid }: { uid: string }): Promise<string> => {

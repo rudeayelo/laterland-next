@@ -6,7 +6,9 @@
       "FIREBASE_DATABASE_URL": "@laterland_firebase_database_url",
       "FIREBASE_MESSAGING_SENDER_ID": "@laterland_firebase_messaging_sender_id",
       "FIREBASE_PROJECT_ID": "@laterland_firebase_project_id",
-      "FIREBASE_STORAGE_BUCKET": "@laterland_firebase_storage_bucket"
+      "FIREBASE_STORAGE_BUCKET": "@laterland_firebase_storage_bucket",
+      "FIREBASE_CLIENT_EMAIL": "@laterland_firebase_client_email",
+      "FIREBASE_PRIVATE_KEY": "@laterland_firebase_private_key"
     }
   }
 }

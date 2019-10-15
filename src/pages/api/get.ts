@@ -1,24 +1,27 @@
 import fetch from "isomorphic-unfetch";
+import firebase from "../../firebase-admin";
 import { getPinboardToken, pinboardEndpoint } from "../../helpers";
 
 export default async (req, res) => {
   res.setHeader("Content-Type", "application/json");
 
-  const { url, uid, dt } = req.query;
+  const { userToken, url, dt } = JSON.parse(req.body);
+
+  const { uid } = await firebase.auth().verifyIdToken(userToken);
 
   const encodedUrl = encodeURI(url);
 
-  const token = await getPinboardToken({ uid });
+  const pinboardToken = await getPinboardToken({ uid });
 
   const pinboardPost = await fetch(
-    pinboardEndpoint("posts/get", token, `url=${encodedUrl}`)
+    pinboardEndpoint("posts/get", pinboardToken, `url=${encodedUrl}`)
   );
 
   const { posts } = await pinboardPost.json();
 
   if (!posts.length) {
     const pinboardFallbackPosts = await fetch(
-      pinboardEndpoint("posts/get", token, `dt=${dt}`)
+      pinboardEndpoint("posts/get", pinboardToken, `dt=${dt}`)
     );
 
     const { posts: fallbackPosts } = await pinboardFallbackPosts.json();

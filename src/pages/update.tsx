@@ -3,39 +3,39 @@ import { useRouter } from "next/router";
 import { Box, Button, Flex, Text } from "@rudeland/ui";
 import { motion } from "framer-motion";
 import { useAlert, Input, Loading, PageLoading } from "../components";
-import { useAuth, useFetch } from "../hooks";
+import { useApi } from "../hooks";
 import { MdDone, MdClose } from "react-icons/md";
 
 export default () => {
   const router = useRouter();
   const { url, fallback_date } = router.query;
-  const { user } = useAuth();
   const { alertInfo, alertSuccess, alertDanger, closeAlert } = useAlert();
   const [tags, setTags] = useState("");
   const [description, setDescription] = useState("");
   const tagsInput = useRef(null);
-  const { data, error, loading } = useFetch(
-    `/api/get?uid=${user.uid}&url=${url}&dt=${fallback_date}`
-  );
-  const { data: suggestedTags, loading: suggestedTagsLoading } = useFetch(
-    `/api/suggest?uid=${user.uid}&url=${url}`
+  const { data, error, loading } = useApi(`/get`, {
+    body: { url, dt: fallback_date }
+  });
+  const { data: suggestedTags, loading: suggestedTagsLoading } = useApi(
+    `/suggest`,
+    { body: { url } }
   );
   const {
     data: updateResponse,
     loading: updateLoading,
     execute: update
-  } = useFetch(
-    `/api/update?uid=${user.uid}&url=${url}`,
-    JSON.stringify({ url, description, tags, hash: data && data.hash })
-  );
+  } = useApi(`/update`, {
+    body: { url, description, tags, hash: data && data.hash },
+    lazy: true
+  });
   const {
     data: deletePostResponse,
     loading: deletePostLoading,
     execute: deletePost
-  } = useFetch(
-    `/api/delete?uid=${user.uid}&url=${url}`,
-    JSON.stringify({ url, hash: data && data.hash })
-  );
+  } = useApi(`/delete`, {
+    body: { url, hash: data && data.hash },
+    lazy: true
+  });
 
   useEffect(() => {
     if (data) {

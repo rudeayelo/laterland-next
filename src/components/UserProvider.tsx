@@ -1,28 +1,23 @@
-import React, { useReducer, useEffect, useRef, useState } from "react";
-import firebase, { db } from "../firebase";
+import React, { useReducer, useEffect, useRef } from "react";
+import firebase, { db } from "../firebase-client";
 import { USERS_COLLECTION } from "../constants";
 
 type User = {
-  uid: string;
+  userToken: string;
   isSignedIn: boolean;
   pinboardToken: string;
+  isLoading: boolean;
 };
 
 type UserContext = {
   user: User | null;
-  userLoading: boolean;
-  setId(uid: string | null): void;
   setPinboardToken(pinboardToken: string | null): void;
-  setSignedIn(): void;
+  setSignedIn(userToken: string): void;
   setSignedOut(): void;
 };
 
 export const UserContext = React.createContext<UserContext>({
   user: null,
-  userLoading: true,
-  setId: (uid: string) => {
-    throw new Error("setId() not implemented");
-  },
   setPinboardToken: (pinboardToken: string) => {
     throw new Error("setPinboardToken() not implemented");
   },
@@ -39,13 +34,15 @@ const userReducer = (state, action) => ({ ...state, ...action });
 const UserProvider = ({ children }) => {
   const [user, dispatch] = useReducer(userReducer, {});
   const userLoggedIn = useRef(null);
-  const [userLoading, setUserLoading] = useState(true);
 
-  const setSignedIn = () => dispatch({ isSignedIn: true });
-  const setSignedOut = () => dispatch({ isSignedIn: false });
-  const setId = uid => dispatch({ uid });
+  const setSignedIn = (userToken: string) =>
+    dispatch({ userToken, isSignedIn: true, isLoading: false });
+
+  const setSignedOut = () =>
+    dispatch({ userToken: null, isSignedIn: false, isLoading: false });
+
   const setPinboardToken = pinboardToken => {
-    db.doc(`${USERS_COLLECTION}/${user.uid}`).set(
+    db.doc(`${USERS_COLLECTION}/${user.userToken}`).set(
       { pinboardToken },
       { merge: true }
     );
@@ -53,19 +50,24 @@ const UserProvider = ({ children }) => {
     dispatch({ pinboardToken });
   };
 
-  const setUserSignedIn = (uid: string) => {
-    setId(uid);
-    setSignedIn();
-    userLoggedIn.current = true;
+  const setUserSignedIn = () => {
+    firebase
+      .auth()
+      .currentUser.getIdToken(true)
+      .then(idToken => {
+        setSignedIn(idToken);
+        userLoggedIn.current = true;
+      })
+      .catch(error => {
+        console.warn("==> Error getting the userToken from Firebase:", error);
+      });
   };
 
   useEffect(() => {
     firebase.auth().onAuthStateChanged(fbUser => {
       if (fbUser && !userLoggedIn.current) {
-        console.log("==> Setting uid through onAuthStateChanged");
-        setUserSignedIn(fbUser.uid);
-        setUserLoading(false);
-        return;
+        console.log("==> Setting userToken through onAuthStateChanged");
+        setUserSignedIn();
       }
     });
 
@@ -73,11 +75,9 @@ const UserProvider = ({ children }) => {
       .auth()
       .getRedirectResult()
       .then(({ user: fbUser }) => {
-        if (fbUser) {
-          console.log("==> Setting uid through getRedirectResult");
-          setUserSignedIn(fbUser.uid);
-          setUserLoading(false);
-          return;
+        if (fbUser && !userLoggedIn.current) {
+          console.log("==> Setting userToken through getRedirectResult");
+          setUserSignedIn();
         }
       })
       .catch(({ code, email, message }) => {
@@ -92,11 +92,9 @@ const UserProvider = ({ children }) => {
     <UserContext.Provider
       value={{
         user,
-        setId,
         setPinboardToken,
         setSignedIn,
-        setSignedOut,
-        userLoading
+        setSignedOut
       }}
     >
       {children}
