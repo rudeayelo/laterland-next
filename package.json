@@ -33,6 +33,7 @@
     "deploy": "now -n laterland --prod"
   },
   "devDependencies": {
+    "@babel/plugin-proposal-optional-chaining": "7.6.0",
     "@firebase/app-types": "0.4.4",
     "@firebase/util": "0.2.28",
     "@types/node": "12.7.12",

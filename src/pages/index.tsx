@@ -236,9 +236,7 @@ const Post = ({ post }) => {
   }, [loading, data]);
 
   useEffect(() => {
-    if (error || (data && data.error)) {
-      console.log("error", error);
-      console.log("data.error", data && data.error);
+    if (error || data?.error) {
       alertDanger(
         <Flex alignItems="center" flex={1}>
           <MdError size={24} />
@@ -358,7 +356,8 @@ export default () => {
     <PageLoading />
   ) : (
     <motion.div
-      initial={{ opacity: 1 }}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
       exit={{
         x: 30,
         opacity: 0
