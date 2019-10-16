@@ -1,8 +1,12 @@
 import fetch from "isomorphic-unfetch";
 import differenceInMinutes from "date-fns/differenceInMinutes";
 import formatDistanceToNow from "date-fns/formatDistanceToNow";
-import firebase, { db } from "../../firebase-admin";
-import { getPinboardToken, pinboardEndpoint } from "../../helpers";
+import { db } from "../../firebase-admin";
+import {
+  getPinboardToken,
+  pinboardEndpoint,
+  verifyUserIdToken
+} from "../../helpers";
 import { USERS_COLLECTION, POSTS_COLLECTION } from "../../constants";
 import { Post, PublicPost, UID } from "../../typings";
 
@@ -39,8 +43,12 @@ const setLastUpdate = ({
   );
 };
 
-const fetchLastUpdate = async ({ token }: { token: string }): Promise<Date> => {
-  const res = await fetch(pinboardEndpoint("posts/update", token));
+const fetchLastUpdate = async ({
+  pinboardToken
+}: {
+  pinboardToken: string;
+}): Promise<Date> => {
+  const res = await fetch(pinboardEndpoint("posts/update", pinboardToken));
   const lastUpdate = await res.json();
 
   const updateDateTime = new Date(lastUpdate.update_time);
@@ -48,9 +56,13 @@ const fetchLastUpdate = async ({ token }: { token: string }): Promise<Date> => {
   return updateDateTime;
 };
 
-const fetchPosts = async ({ token }: { token: string }): Promise<Post[]> => {
+const fetchPosts = async ({
+  pinboardToken
+}: {
+  pinboardToken: string;
+}): Promise<Post[]> => {
   console.log("--> Fetch Pinboard");
-  const res = await fetch(pinboardEndpoint("posts/all", token));
+  const res = await fetch(pinboardEndpoint("posts/all", pinboardToken));
   const allPosts = await res.json();
   const unreadPosts = allPosts.reduce((acc: Post[], current) => {
     if (current.toread === "yes") {
@@ -120,11 +132,11 @@ export default async (req, res) => {
 
   const { userToken, toread } = JSON.parse(req.body);
 
-  const { uid } = await firebase.auth().verifyIdToken(userToken);
+  const uid = await verifyUserIdToken(userToken);
 
   const userDoc = await db.doc(`${USERS_COLLECTION}/${uid}`).get();
   const pinboardToken = await getPinboardToken({ uid });
-  const lastPinboardUpdate = await fetchLastUpdate({ token: pinboardToken });
+  const lastPinboardUpdate = await fetchLastUpdate({ pinboardToken });
   const lastStoredUpdateDoc = userDoc && userDoc.data().lastUpdate;
   const lastStoredUpdate = new Date(
     parseInt(lastStoredUpdateDoc.seconds, 10) * 1000
@@ -132,7 +144,7 @@ export default async (req, res) => {
 
   if (shouldFetchPostsFromPinboard(lastPinboardUpdate, lastStoredUpdate)) {
     setLastUpdate({ uid, lastPinboardUpdate });
-    const data = await fetchPosts({ token: pinboardToken });
+    const data = await fetchPosts({ pinboardToken });
     await updatePosts({ posts: data, uid });
   }
 

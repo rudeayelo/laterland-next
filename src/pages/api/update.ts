@@ -1,6 +1,10 @@
 import fetch from "isomorphic-unfetch";
-import firebase, { db } from "../../firebase-admin";
-import { getPinboardToken, pinboardEndpoint } from "../../helpers";
+import { db } from "../../firebase-admin";
+import {
+  getPinboardToken,
+  pinboardEndpoint,
+  verifyUserIdToken
+} from "../../helpers";
 import { USERS_COLLECTION, POSTS_COLLECTION } from "../../constants";
 
 export default async (req, res) => {
@@ -8,18 +12,18 @@ export default async (req, res) => {
 
   const { userToken, url, description, tags, hash } = JSON.parse(req.body);
 
-  const { uid } = await firebase.auth().verifyIdToken(userToken);
+  const uid = await verifyUserIdToken(userToken);
 
   const encodedUrl = encodeURI(url);
   const encodedDescription = encodeURI(description);
   const encodedTags = encodeURI(tags);
 
-  const token = await getPinboardToken({ uid });
+  const pinboardToken = await getPinboardToken({ uid });
 
   const pinboardAdd = await fetch(
     pinboardEndpoint(
       "posts/add",
-      token,
+      pinboardToken,
       `url=${encodedUrl}&description=${encodedDescription}&tags=${encodedTags}`
     )
   );
