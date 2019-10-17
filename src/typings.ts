@@ -19,5 +19,5 @@ export interface ClassName {
 }
 
 export interface Intent {
-  intent?: "none" | "default" | "success" | "danger" | "warning";
+  intent?: "none" | "success" | "error" | "warning";
 }

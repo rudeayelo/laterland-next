@@ -1,63 +1,35 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/router";
-import styled from "styled-components";
+import styled from "../styled";
 import {
   border,
   BorderProps,
-  alignItems,
-  AlignItemsProps,
-  space,
-  SpaceProps
 } from "styled-system";
 import format from "date-fns/lightFormat";
 import formatDistance from "date-fns/formatDistance";
 import extractDomain from "extract-domain";
-import { Box, Button, Flex, Text } from "@rudeland/ui";
+import { Box, Button, Flex, Text } from "@chakra-ui/core";
 import { motion, useMotionValue, useTransform } from "framer-motion";
 import {
   MdCode,
   MdDelete,
   MdDescription,
   MdEdit,
-  MdError,
   MdLink,
-  MdClose
 } from "react-icons/md";
 import { FaYoutube, FaGithub, FaTwitter } from "react-icons/fa";
-import { Alert, useAlert, PageLoading } from "../components";
-import { useApi, useAuth, useLocalStorage, useScrollYPosition } from "../hooks";
+import { Alert, Icon, Loading, PageLoading } from "../components";
+import { useAlert, useApi, useAuth, useLocalStorage, useScrollYPosition } from "../hooks";
 
-const EDIT_POST_SWIPE_THRESHOLD = 50;
-const DELETE_POST_SWIPE_THRESHOLD = -50;
-
-interface DetailProps extends AlignItemsProps {}
-
-const Detail = styled(Text).attrs({
-  as: "span"
-})<DetailProps>`
-  &:not(:first-child) {
-    margin-left: ${({ theme }) => theme.space[1]}px;
-
-    &::before {
-      content: "/ ";
-    }
-  }
-
-  ${alignItems}
-`;
-
-Detail.defaultProps = {
-  textSize: 0,
-  color: "g.50"
-};
+const Detail = props => <Text fontSize="xs" color="gray.500" {...props} />
 
 const sourceCategories = {
   github: {
-    color: "g.10",
+    color: "gray.900",
     icon: FaGithub
   },
   code: {
-    color: "blue.dark",
+    color: "blue.700",
     icon: MdCode
   },
   video: {
@@ -69,11 +41,11 @@ const sourceCategories = {
     icon: FaTwitter
   },
   article: {
-    color: "green.light",
+    color: "green.300",
     icon: MdDescription
   },
   other: {
-    color: "g.50",
+    color: "gray.500",
     icon: MdLink
   }
 };
@@ -93,7 +65,7 @@ const sourceUrls = {
 };
 
 const SourceUrl = ({ children }) => {
-  const Icon = sourceUrls[children]
+  const SourceIcon = sourceUrls[children]
     ? sourceUrls[children].icon
     : sourceCategories.other.icon;
   const color = sourceUrls[children]
@@ -101,11 +73,14 @@ const SourceUrl = ({ children }) => {
     : sourceCategories.other.color;
 
   return (
-    <Detail color={color} display="inline-flex" alignItems="center">
-      <Icon size={14} style={{ display: "inline-block" }} />
-      <Box display="inline" ml={1}>
+    <Detail display="inline-flex" alignItems="center">
+      <Icon as={SourceIcon} color={color} size={14} style={{ display: "inline-block" }} />
+      <Text as="span" ml={1} color={color}>
         {children}
-      </Box>
+      </Text>
+      <Text as="span" mx={1}>
+        /
+      </Text>
     </Detail>
   );
 };
@@ -123,41 +98,23 @@ const PostContainer = styled(Box)<PostContainerProps>`
 
 PostContainer.defaultProps = {
   borderBottom: "1px solid",
-  borderColor: "g.90",
+  borderColor: "gray.100",
   position: "relative"
 };
 
-interface PostContentProps extends SpaceProps {}
+// @ts-ignore
+const PostDescriptionStyle = styled(Text)`text-decoration: solid underline ${({theme}) => theme.colors.blue["300"]}`
+const PostDescription = props => <PostDescriptionStyle lineHeight="base" fontWeight="medium" {...props} />
 
-const PostContent = styled(motion.div)<PostContentProps>`
-  ${space}
-`;
-
-PostContent.defaultProps = {
-  px: 3,
-  py: 2
-};
-
-const PostDescription = styled(Text)`
-  text-decoration: underline solid ${({ theme }) => theme.colors.blue.light};
-`;
-
-PostDescription.defaultProps = {
-  lineHeight: 1.6,
-  fontWeight: 1
-};
-
-const EditIcon = styled(MdEdit)``;
-
-EditIcon.defaultProps = {
-  size: 28
-};
+const EDIT_POST_SWIPE_THRESHOLD = 50;
+const DELETE_POST_SWIPE_THRESHOLD = -50;
+const sharedIndicatorStyle = { y: "-50%", position: "absolute", top: "50%" } as const
 
 const EditIndicator = ({ dragX }) => {
   const x = useTransform(
     dragX,
     [10, 45, EDIT_POST_SWIPE_THRESHOLD],
-    [-44, -24, 0]
+    [-40, -20, 0]
   );
   const color = useTransform(
     dragX,
@@ -166,27 +123,19 @@ const EditIndicator = ({ dragX }) => {
   );
 
   return (
-    <motion.div
-      style={{ color, x, y: "-50%", position: "absolute", top: "50%", left: 0 }}
-    >
+    <motion.div style={{ color, x, left: 0, ...sharedIndicatorStyle }}>
       <Box py={3} pl={3}>
-        <EditIcon />
+        <Icon as={MdEdit} size={28} />
       </Box>
     </motion.div>
   );
 };
 
-const DeleteIcon = styled(MdDelete)``;
-
-DeleteIcon.defaultProps = {
-  size: 28
-};
-
-const DeleteIndicator = ({ dragX }) => {
+const DeleteIndicator = ({ dragX, deleting }) => {
   const x = useTransform(
     dragX,
     [-10, -45, DELETE_POST_SWIPE_THRESHOLD],
-    [44, 24, 0]
+    [40, 20, 0]
   );
   const color = useTransform(
     dragX,
@@ -195,18 +144,12 @@ const DeleteIndicator = ({ dragX }) => {
   );
 
   return (
-    <motion.div
-      style={{
-        color,
-        x,
-        y: "-50%",
-        position: "absolute",
-        top: "50%",
-        right: 0
-      }}
-    >
+    <motion.div style={{ color, x, right: 0, ...sharedIndicatorStyle }}>
       <Box py={3} pr={3}>
-        <DeleteIcon />
+        {deleting
+          ? <Loading size="24px" thickness={0.15} color="red" />
+          : <Icon as={MdDelete} size={28} />}
+
       </Box>
     </motion.div>
   );
@@ -214,7 +157,7 @@ const DeleteIndicator = ({ dragX }) => {
 
 const Post = ({ post }) => {
   const router = useRouter();
-  const { alertSuccess, alertDanger } = useAlert();
+  const alert = useAlert();
   const x = useMotionValue(0);
   const [editing, setEditing] = useState(false);
   const { data, error, loading, execute: deletePost } = useApi(`/delete`, {
@@ -224,28 +167,21 @@ const Post = ({ post }) => {
 
   useEffect(() => {
     if (!loading && data && !data.error) {
-      alertSuccess(
-        <Flex alignItems="center" flex={1}>
-          <MdClose size={24} />
-          <Box ml={2}>
-            <Text>Post deleted successfuly</Text>
-          </Box>
-        </Flex>
-      );
+      alert({
+        title: "Post deleted successfuly",
+        icon: MdDelete,
+        intent: "success"
+      })
     }
   }, [loading, data]);
 
   useEffect(() => {
     if (error || data?.error) {
-      alertDanger(
-        <Flex alignItems="center" flex={1}>
-          <MdError size={24} />
-          <Box ml={2}>
-            <Text>Error deleting the post:</Text>
-            <Text textSize={1}>{error || data.error}</Text>
-          </Box>
-        </Flex>
-      );
+      alert({
+        title: "Error deleting the post",
+        description: error || data.data,
+        intent: "error"
+      })
     }
   }, [error, data]);
 
@@ -254,7 +190,8 @@ const Post = ({ post }) => {
       opacity: 1
     },
     deleting: {
-      opacity: 0.5
+      opacity: 0.5,
+      x: -50,
     },
     deleted: {
       height: 0,
@@ -281,7 +218,7 @@ const Post = ({ post }) => {
   return (
     <PostContainer>
       <EditIndicator dragX={x} />
-      <DeleteIndicator dragX={x} />
+      <DeleteIndicator dragX={x} deleting={loading} />
       <motion.div
         drag="x"
         style={{ x }}
@@ -301,14 +238,17 @@ const Post = ({ post }) => {
             : "default"
         }
         transition={{ ease: "easeOut", duration: 0.2 }}
+        dragMomentum={false}
       >
-        <PostContent onTap={goToPostHref}>
+        <motion.div onTap={goToPostHref}>
+          <Box px={3} py={3}>
           <PostDescription>{post.description}</PostDescription>
-          <Flex my={1} alignItems="center">
-            <SourceUrl>{extractDomain(post.href)}</SourceUrl>
-            <Detail>{formatDistance(postDate, new Date())} ago</Detail>
-          </Flex>
-        </PostContent>
+            <Flex my={1} alignItems="center">
+              <SourceUrl>{extractDomain(post.href)}</SourceUrl>
+              <Detail>{formatDistance(postDate, new Date())} ago</Detail>
+            </Flex>
+          </Box>
+        </motion.div>
       </motion.div>
     </PostContainer>
   );
@@ -340,13 +280,13 @@ export default () => {
   if (error)
     return (
       <Alert
-        intent="danger"
+        intent="error"
         alignItems="center"
         justifyContent="space-between"
         m={3}
       >
         <Text>Error loading posts</Text>
-        <Button onClick={signout} intent="danger" ml="auto" size="small">
+        <Button onClick={signout} variantColor="white" variant="outline" ml="auto" size="sm">
           Try signin out
         </Button>
       </Alert>
@@ -364,12 +304,10 @@ export default () => {
       }}
       transition={{ ease: "easeOut", duration: 0.2 }}
     >
-      <Text as="h1" fontWeight={2} textSize={4} py={3} px={3}>
+      <Text as="h1" fontWeight="medium" fontSize="xl" pt={10} pb={3} px={3} m={0}>
         {data.length} unread posts
       </Text>
-      {data.map(post => (
-        <Post post={post} key={post.id} />
-      ))}
+      {data.map(post => <Post post={post} key={post.id} />)}
     </motion.div>
   );
 };

@@ -1,57 +1,41 @@
-import styled from "styled-components";
-import {
-  color,
-  ColorProps,
-  background,
-  BackgroundProps,
-  border,
-  BorderProps,
-  variant
-} from "styled-system";
-import { baseTheme, Flex } from "@rudeland/ui";
+import styled from "../styled";
+import { variant } from "styled-system";
+import { Flex } from "@chakra-ui/core";
 import { Intent } from "../typings";
 
-export interface AlertProps
-  extends BackgroundProps,
-    BorderProps,
-    ColorProps,
-    Intent {}
+export interface AlertProps extends Intent {}
 
 const intent = variant({
   prop: "intent",
   variants: {
-    default: {
-      color: "g.30",
-      backgroundColor: "g.90"
+    none: {
+      color: "gray.800",
+      backgroundColor: "gray.200"
     },
     success: {
-      color: "green.dark",
-      backgroundColor: "green.lightest"
+      color: "green.800",
+      backgroundColor: "green.200"
     },
-    danger: {
-      color: "red.dark",
-      backgroundColor: "red.lightest"
+    error: {
+      color: "red.800",
+      backgroundColor: "red.200"
     },
     warning: {
-      color: "orange.dark",
-      backgroundColor: "orange.lightest"
+      color: "orange.800",
+      backgroundColor: "orange.200"
     }
   }
 });
 
 const Alert = styled(Flex)<AlertProps>`
   ${intent}
-  ${background};
-  ${border};
-  ${color};
 `;
 
 Alert.defaultProps = {
-  px: 3,
-  py: 3,
-  borderRadius: 2,
-  intent: "default",
-  theme: baseTheme
+  py: 4,
+  px: 5,
+  borderRadius: "sm",
+  intent: "none"
 };
 
 export { Alert };

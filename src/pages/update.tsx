@@ -1,15 +1,23 @@
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/router";
-import { Box, Button, Flex, Text } from "@rudeland/ui";
+import {
+  Box,
+  Button,
+  Editable,
+  EditableInput,
+  EditablePreview,
+  Flex,
+  Text
+} from "@chakra-ui/core";
 import { motion } from "framer-motion";
-import { useAlert, Input, Loading, PageLoading } from "../components";
-import { useApi } from "../hooks";
-import { MdDone, MdClose } from "react-icons/md";
+import { Loading, PageLoading } from "../components";
+import { useAlert, useApi } from "../hooks";
+import { MdDelete, MdSave } from "react-icons/md";
 
 export default () => {
   const router = useRouter();
   const { url, fallback_date } = router.query;
-  const { alertInfo, alertSuccess, alertDanger, closeAlert } = useAlert();
+  const alert = useAlert();
   const [tags, setTags] = useState("");
   const [description, setDescription] = useState("");
   const tagsInput = useRef(null);
@@ -22,6 +30,7 @@ export default () => {
   );
   const {
     data: updateResponse,
+    error: updateResponseError,
     loading: updateLoading,
     execute: update
   } = useApi(`/update`, {
@@ -45,43 +54,23 @@ export default () => {
   }, [data]);
 
   useEffect(() => {
-    if (tagsInput && tagsInput.current) {
-      const inputValueLength = tagsInput.current.value.length;
-      tagsInput.current.focus();
-      tagsInput.current.setSelectionRange(inputValueLength, inputValueLength);
-    }
-  }, [tags]);
-
-  useEffect(() => {
     if (!updateLoading && updateResponse) {
       if (!updateResponse.error) {
         const redirect = setTimeout(() => {
           router.push(`/`);
         }, 3000);
 
-        closeAlert();
-        alertSuccess(
-          <Flex alignItems="center" flex={1}>
-            <MdDone size={24} />
-            <Box ml={2}>Updated!</Box>
-            <Button
-              intent="success"
-              size="small"
-              onClick={() => clearTimeout(redirect)}
-              ml="auto"
-            >
-              Cancel redirect
-            </Button>
-          </Flex>
-        );
+        // TODO: Cancel redirect button
+        alert({
+          title: "Post updated",
+          intent: "success"
+        });
       } else {
-        closeAlert();
-        alertDanger(
-          <Flex alignItems="center">
-            <MdClose size={24} style={{ marginRight: 8 }} />{" "}
-            {updateResponse.data}
-          </Flex>
-        );
+        alert({
+          title: "Error updating the post",
+          description: updateResponseError || updateResponse.data,
+          intent: "error"
+        });
       }
     }
   }, [updateResponse, updateLoading]);
@@ -89,16 +78,6 @@ export default () => {
   const onTagClick = (e, suggestedTag) => {
     e.stopPropagation();
     return setTags(tags => `${tags} ${suggestedTag}`);
-  };
-
-  const onUpdate = () => {
-    alertInfo(
-      <Flex alignItems="center">
-        <Loading size={32} ml={2} />
-        Updating...
-      </Flex>
-    );
-    update();
   };
 
   if (error) return <Text>Error loading post</Text>;
@@ -126,6 +105,15 @@ export default () => {
             px={3}
             height="100vh"
           >
+            <Box alignSelf="flex-start" mb={5}>
+              <Button
+                variantColor="red"
+                onClick={deletePost}
+                leftIcon={MdDelete}
+              >
+                Delete
+              </Button>
+            </Box>
             <Flex
               as="form"
               flexDirection="column"
@@ -134,52 +122,63 @@ export default () => {
                 update();
               }}
             >
-              <Input
+              <Editable
                 value={description}
-                autoCorrect="off"
-                autoCapitalize="none"
-                onChange={e => setDescription(e.target.value)}
-                onKeyPress={e => {
-                  e.key === "Enter" && update();
-                }}
-                fontSize={4}
-                fontWeight={1}
-              />
+                onChange={e => setDescription(e)}
+                submitOnBlur={false}
+                fontSize="xl"
+                fontWeight="medium"
+              >
+                <EditablePreview />
+                <EditableInput
+                  autoCorrect="off"
+                  autoCapitalize="none"
+                  borderRadius="sm"
+                />
+              </Editable>
               <Text
-                textSize={0}
-                color="blue.base"
-                px={2}
+                fontSize="sm"
+                color="primary"
                 onClick={() => {
                   window.location.href = data.href;
                 }}
+                mt={2}
               >
                 {data.href}
               </Text>
-              <Input
+              <Editable
                 value={tags}
-                ref={tagsInput}
-                autoCorrect="off"
-                autoCapitalize="none"
+                onChange={e => setTags(e)}
+                submitOnBlur={false}
+                selectAllOnFocus={false}
+                fontSize="sm"
                 placeholder="tags"
-                onChange={e => setTags(e.target.value)}
-                onKeyPress={e => {
-                  e.key === "Enter" && onUpdate();
-                }}
-                fontWeight={0}
-              />
+                mt={2}
+              >
+                <EditablePreview py={1} />
+                <EditableInput
+                  autoCorrect="off"
+                  autoCapitalize="none"
+                  borderRadius="sm"
+                  py={1}
+                />
+              </Editable>
             </Flex>
             {suggestedTagsLoading ? (
-              <Loading size={32} pt={3} />
+              <Loading size="32px" pt={3} />
             ) : (
               !!suggestedTags.length && (
-                <Box pt={3}>
+                <Box pt={4}>
                   {suggestedTags.map(suggestedTag => (
                     <Button
-                      appearance="default"
+                      variantColor="blue"
+                      fontWeight="normal"
                       onClick={e => onTagClick(e, suggestedTag)}
-                      size="small"
+                      size="xs"
                       mr={2}
                       mb={2}
+                      px={3}
+                      borderRadius="rounded"
                       key={suggestedTag}
                     >
                       {suggestedTag}
@@ -188,16 +187,15 @@ export default () => {
                 </Box>
               )
             )}
-            <Box alignSelf="flex-start">
+            <Box alignSelf="flex-start" mt={5}>
               <Button
-                appearance="default"
-                intent="danger"
-                onClick={deletePost}
-                iconBefore={<MdClose size={20} />}
-                mr={2}
-                mt={2}
+                isLoading={updateLoading}
+                loadingText={updateLoading && "Updating"}
+                variantColor="green"
+                onClick={update}
+                leftIcon={MdSave}
               >
-                Delete
+                Update
               </Button>
             </Box>
           </Flex>

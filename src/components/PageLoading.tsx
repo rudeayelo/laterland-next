@@ -1,5 +1,5 @@
-import { Flex } from "@rudeland/ui";
-import { Loading } from ".";
+import { Flex } from "@chakra-ui/core";
+import { Loading } from "./Loading";
 
 const PageLoading = () => (
   <Flex
@@ -8,7 +8,7 @@ const PageLoading = () => (
     height="100vh"
     width="100vw"
   >
-    <Loading />
+    <Loading size="56px" />
   </Flex>
 );
 

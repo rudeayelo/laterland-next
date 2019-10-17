@@ -1,10 +1,11 @@
 import App from "next/app";
 import Head from "next/head";
 import React from "react";
-import { createGlobalStyle, ThemeProvider } from "styled-components";
-import { Box, Button, createTheme, Flex } from "@rudeland/ui";
+import { Global, css } from "@emotion/core";
+import { Box, Button, Flex, ThemeProvider } from "@chakra-ui/core";
 import { AnimatePresence } from "framer-motion";
-import { AlertProvider, PageLoading, UserProvider } from "../components";
+import { customTheme } from "../theme";
+import { PageLoading, UserProvider } from "../components";
 import { useAuth } from "../hooks/useAuth";
 import { MdPerson } from "react-icons/md";
 
@@ -25,8 +26,11 @@ const Main = ({ children }) => {
         <Box alignSelf="flex-end">
           <Button
             onClick={signin}
-            size="large"
-            iconBefore={<MdPerson size="20px" />}
+            size="md"
+            leftIcon={MdPerson}
+            variantColor="blue"
+            variant="solid"
+            fontWeight="medium"
           >
             Sign in
           </Button>
@@ -36,22 +40,6 @@ const Main = ({ children }) => {
 
   return children;
 };
-
-const GlobalStyle = createGlobalStyle`
-  html, body { padding: 0; margin: 0; }
-
-  html, button, input {
-    font-family: 'IBM Plex Sans', "SF UI Text", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
-  }
-
-  body {
-    background: white;
-  }
-
-  *, *::before, *::after {
-    box-sizing: border-box
-  }
-`;
 
 export default class MyApp extends App {
   render() {
@@ -76,21 +64,42 @@ export default class MyApp extends App {
 
           <title>Laterland</title>
         </Head>
-        <GlobalStyle />
-        <ThemeProvider
-          theme={createTheme({
-            accentColor: "hsl(36,80%,70%)",
-            fontWeights: [400, 500, 600]
-          })}
-        >
+        <Global
+          styles={css`
+            html,
+            body,
+            p {
+              padding: 0;
+              margin: 0;
+            }
+
+            html,
+            button,
+            input {
+              font-family: ${customTheme.fonts.body};
+            }
+
+            body {
+              background: white;
+              color: ${customTheme.colors.gray[900]};
+            }
+
+            *,
+            *::before,
+            *::after {
+              box-sizing: border-box;
+              border-width: 0px;
+              border-style: solid;
+            }
+          `}
+        />
+        <ThemeProvider theme={customTheme}>
           <UserProvider>
-            <AlertProvider>
-              <Main>
-                <AnimatePresence exitBeforeEnter>
-                  <Component {...pageProps} key={router.route} />
-                </AnimatePresence>
-              </Main>
-            </AlertProvider>
+            <Main>
+              <AnimatePresence exitBeforeEnter>
+                <Component {...pageProps} key={router.route} />
+              </AnimatePresence>
+            </Main>
           </UserProvider>
         </ThemeProvider>
       </>

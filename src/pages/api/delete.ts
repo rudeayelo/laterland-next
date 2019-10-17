@@ -18,11 +18,11 @@ export default async (req, res) => {
 
   const pinboardToken = await getPinboardToken({ uid });
 
-  const pinboardAdd = await fetch(
+  const pinboardDelete = await fetch(
     pinboardEndpoint("posts/delete", pinboardToken, `url=${encodedUrl}`)
   );
 
-  const { result_code } = await pinboardAdd.json();
+  const { result_code } = await pinboardDelete.json();
 
   const isError = result_code !== "done";
 
