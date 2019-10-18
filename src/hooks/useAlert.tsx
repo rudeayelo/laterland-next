@@ -13,6 +13,7 @@ interface UseAlertOptions extends Intent {
     | "bottom-left"
     | "bottom-right";
   icon?: React.ReactNode;
+  extended?: React.ReactNode;
   description?: string;
   duration?: number;
 }
@@ -24,6 +25,7 @@ const useAlert = () => {
     icon,
     title,
     description,
+    extended,
     duration = 2000,
     position = "top",
     intent = "none"
@@ -41,21 +43,22 @@ const useAlert = () => {
       position,
       duration,
       render: () => (
-        <Alert
-          intent={intent}
-          alignItems="center"
-          justifyContent="space-between"
-          mx={3}
-          mt={3}
-        >
-          <Flex alignItems="center" flex={1}>
-            <Icon as={icon || AlertIcon} size={5} />
-            <Box ml={2} textAlign="left">
-              <Text fontWeight="medium">{title}</Text>
-              {description && <Text fontSize="sm">{description}</Text>}
-            </Box>
-          </Flex>
-        </Alert>
+        <Box px={3} pt={3} minW="100vw">
+          <Alert
+            intent={intent}
+            alignItems="center"
+            justifyContent="space-between"
+          >
+            <Flex alignItems="center" flex={1}>
+              <Icon as={icon || AlertIcon} size={5} />
+              <Box ml={3} textAlign="left" flex={1}>
+                <Text fontWeight="medium">{title}</Text>
+                {description && <Text fontSize="sm">{description}</Text>}
+              </Box>
+              {extended}
+            </Flex>
+          </Alert>
+        </Box>
       )
     });
   };

@@ -36,7 +36,6 @@ export default () => {
     body: { url, description, tags, hash: data && data.hash },
     lazy: true
   });
-  // TODO: Handle delete loading
   const {
     data: deletePostResponse,
     loading: deletePostLoading,
@@ -60,10 +59,22 @@ export default () => {
           router.push(`/`);
         }, 3000);
 
-        // TODO: Cancel redirect button
         alert({
           title: "Post updated",
-          intent: "success"
+          intent: "success",
+          extended: (
+            <Button
+              variant="link"
+              variantColor="green"
+              color="green.800"
+              fontWeight="normal"
+              onClick={() => clearTimeout(redirect)}
+              size="xs"
+              ml={6}
+            >
+              Cancel redirection
+            </Button>
+          )
         });
       } else {
         alert({
@@ -105,15 +116,6 @@ export default () => {
             px={3}
             height="100vh"
           >
-            <Box alignSelf="flex-start" mb={5}>
-              <Button
-                variantColor="red"
-                onClick={deletePost}
-                leftIcon={MdDelete}
-              >
-                Delete
-              </Button>
-            </Box>
             <Flex
               as="form"
               flexDirection="column"
@@ -187,17 +189,31 @@ export default () => {
                 </Box>
               )
             )}
-            <Box alignSelf="flex-start" mt={5}>
+            <Flex alignItems="center" alignSelf="flex-start" mt={5}>
               <Button
+                onClick={deletePost}
+                variant="link"
+                variantColor="red"
+                size="sm"
+                leftIcon={MdDelete}
+                isLoading={deletePostLoading}
+                loadingText={deletePostLoading && "Deleting"}
+                fontWeight="normal"
+              >
+                Delete
+              </Button>
+              <Button
+                onClick={update}
+                variantColor="green"
+                leftIcon={MdSave}
                 isLoading={updateLoading}
                 loadingText={updateLoading && "Updating"}
-                variantColor="green"
-                onClick={update}
-                leftIcon={MdSave}
+                isDisabled={!tags.length}
+                ml={5}
               >
                 Update
               </Button>
-            </Box>
+            </Flex>
           </Flex>
         </motion.div>
       )}
