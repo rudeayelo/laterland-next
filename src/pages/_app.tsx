@@ -1,8 +1,7 @@
 import App from "next/app";
 import Head from "next/head";
 import React from "react";
-import { Global, css } from "@emotion/core";
-import { Box, Button, Flex, ThemeProvider } from "@chakra-ui/core";
+import { Box, Button, CSSReset, Flex, ThemeProvider } from "@chakra-ui/core";
 import { AnimatePresence } from "framer-motion";
 import { customTheme } from "../theme";
 import { PageLoading, UserProvider } from "../components";
@@ -22,6 +21,7 @@ const Main = ({ children }) => {
         pb={3}
         px={3}
         height="100vh"
+        fontFamily="body"
       >
         <Box alignSelf="flex-end">
           <Button
@@ -38,7 +38,7 @@ const Main = ({ children }) => {
       </Flex>
     );
 
-  return children;
+  return <Box fontFamily="body">{children}</Box>;
 };
 
 export default class MyApp extends App {
@@ -64,36 +64,8 @@ export default class MyApp extends App {
 
           <title>Laterland</title>
         </Head>
-        <Global
-          styles={css`
-            html,
-            body,
-            p {
-              padding: 0;
-              margin: 0;
-            }
-
-            html,
-            button,
-            input {
-              font-family: ${customTheme.fonts.body};
-            }
-
-            body {
-              background: white;
-              color: ${customTheme.colors.gray[900]};
-            }
-
-            *,
-            *::before,
-            *::after {
-              box-sizing: border-box;
-              border-width: 0px;
-              border-style: solid;
-            }
-          `}
-        />
         <ThemeProvider theme={customTheme}>
+          <CSSReset />
           <UserProvider>
             <Main>
               <AnimatePresence exitBeforeEnter>

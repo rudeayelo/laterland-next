@@ -20,7 +20,6 @@ export default () => {
   const alert = useAlert();
   const [tags, setTags] = useState("");
   const [description, setDescription] = useState("");
-  const tagsInput = useRef(null);
   const { data, error, loading } = useApi(`/get`, {
     body: { url, dt: fallback_date }
   });
@@ -37,6 +36,7 @@ export default () => {
     body: { url, description, tags, hash: data && data.hash },
     lazy: true
   });
+  // TODO: Handle delete loading
   const {
     data: deletePostResponse,
     loading: deletePostLoading,
