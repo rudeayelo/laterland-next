@@ -21,6 +21,39 @@ import { FaYoutube, FaGithub, FaTwitter } from "react-icons/fa";
 import { Alert, Icon, Loading, PageLoading } from "../components";
 import { useAlert, useApi, useAuth, useLocalStorage, useScrollYPosition } from "../hooks";
 
+/* -------------------------------------------------------------------------- */
+/*                               Post container                               */
+/* -------------------------------------------------------------------------- */
+
+interface PostContainerProps extends BorderProps {}
+
+const PostContainer = styled(Box)<PostContainerProps>`
+  cursor: pointer;
+  overflow: hidden;
+
+  &:not(:last-child) {
+    ${border}
+  }
+`;
+
+PostContainer.defaultProps = {
+  borderBottom: "1px solid",
+  borderColor: "gray.100",
+  position: "relative"
+};
+
+/* -------------------------------------------------------------------------- */
+/*                                 Post title                                 */
+/* -------------------------------------------------------------------------- */
+
+// @ts-ignore
+const PostDescriptionStyle = styled(Text)`text-decoration: solid underline ${({theme}) => theme.colors.blue["300"]}`
+const PostDescription = props => <PostDescriptionStyle lineHeight="base" fontWeight="medium" {...props} />
+
+/* -------------------------------------------------------------------------- */
+/*                                Post details                                */
+/* -------------------------------------------------------------------------- */
+
 const Detail = props => <Text fontSize="xs" color="gray.500" {...props} />
 
 const sourceCategories = {
@@ -85,32 +118,17 @@ const SourceUrl = ({ children }) => {
   );
 };
 
-interface PostContainerProps extends BorderProps {}
-
-const PostContainer = styled(Box)<PostContainerProps>`
-  cursor: pointer;
-  overflow: hidden;
-
-  &:not(:last-child) {
-    ${border}
-  }
-`;
-
-PostContainer.defaultProps = {
-  borderBottom: "1px solid",
-  borderColor: "gray.100",
-  position: "relative"
-};
-
-// @ts-ignore
-const PostDescriptionStyle = styled(Text)`text-decoration: solid underline ${({theme}) => theme.colors.blue["300"]}`
-const PostDescription = props => <PostDescriptionStyle lineHeight="base" fontWeight="medium" {...props} />
+/* -------------------------------------------------------------------------- */
+/*                           Edit and Delete actions                          */
+/* -------------------------------------------------------------------------- */
 
 const EDIT_POST_SWIPE_THRESHOLD = 50;
 const DELETE_POST_SWIPE_THRESHOLD = -50;
+const INDICATOR_WIDTH = "20vw";
 const sharedIndicatorStyle = { y: "-50%", position: "absolute", top: "50%" } as const
+const sharedIndicatorHandleStyle = { width: INDICATOR_WIDTH, height: "100%", position: "absolute", top: 0, } as const
 
-const EditIndicator = ({ dragX }) => {
+const EditIndicator = ({ dragX, onDragEnd }) => {
   const x = useTransform(
     dragX,
     [10, 45, EDIT_POST_SWIPE_THRESHOLD],
@@ -123,15 +141,27 @@ const EditIndicator = ({ dragX }) => {
   );
 
   return (
-    <motion.div style={{ color, x, left: 0, ...sharedIndicatorStyle }}>
-      <Box py={3} pl={3}>
-        <Icon as={MdEdit} size={28} />
-      </Box>
-    </motion.div>
+    <>
+      <motion.div
+        drag="x"
+        style={{ left: 0, ...sharedIndicatorHandleStyle }}
+        dragConstraints={{ left: 0, right: 0 }}
+        onUpdate={({x}) => dragX.set(x)}
+        onDragEnd={(_, info) => {
+          info.point.x > EDIT_POST_SWIPE_THRESHOLD && onDragEnd();
+        }}
+        transition={{ ease: "easeOut", duration: 0.2 }}
+      />
+      <motion.div style={{ color, x, left: 0, ...sharedIndicatorStyle }}>
+        <Box py={3} pl={3}>
+          <Icon as={MdEdit} size={28} />
+        </Box>
+      </motion.div>
+    </>
   );
 };
 
-const DeleteIndicator = ({ dragX, deleting }) => {
+const DeleteIndicator = ({ deleting, dragX, onDragEnd }) => {
   const x = useTransform(
     dragX,
     [-10, -45, DELETE_POST_SWIPE_THRESHOLD],
@@ -144,16 +174,32 @@ const DeleteIndicator = ({ dragX, deleting }) => {
   );
 
   return (
-    <motion.div style={{ color, x, right: 0, ...sharedIndicatorStyle }}>
-      <Box py={3} pr={3}>
-        {deleting
-          ? <Loading size="24px" thickness={0.15} color="red" />
-          : <Icon as={MdDelete} size={28} />}
+    <>
+      <motion.div
+        drag="x"
+        style={{ right: 0, ...sharedIndicatorHandleStyle }}
+        dragConstraints={{ left: 0, right: 0 }}
+        onUpdate={({x}) => dragX.set(x)}
+        onDragEnd={(_, info) => {
+          info.point.x < DELETE_POST_SWIPE_THRESHOLD && onDragEnd();
+        }}
+        transition={{ ease: "easeOut", duration: 0.2 }}
+      />
+      <motion.div style={{ color, x, right: 0, ...sharedIndicatorStyle }}>
+        <Box py={3} pr={3}>
+          {deleting
+            ? <Loading size="24px" thickness={0.15} color="red" />
+            : <Icon as={MdDelete} size={28} />}
 
-      </Box>
-    </motion.div>
+        </Box>
+      </motion.div>
+    </>
   );
 };
+
+/* -------------------------------------------------------------------------- */
+/*                                    Post                                    */
+/* -------------------------------------------------------------------------- */
 
 const Post = ({ post }) => {
   const router = useRouter();
@@ -217,42 +263,38 @@ const Post = ({ post }) => {
 
   return (
     <PostContainer>
-      <EditIndicator dragX={x} />
-      <DeleteIndicator dragX={x} deleting={loading} />
+      <EditIndicator dragX={x} onDragEnd={goToUpdateView} />
+      <DeleteIndicator dragX={x} onDragEnd={deletePost} deleting={loading} />
       <motion.div
-        drag="x"
+        onTap={goToPostHref}
         style={{ x }}
-        dragConstraints={{ left: 0, right: 0 }}
-        onDragEnd={(_, info) => {
-          info.point.x > EDIT_POST_SWIPE_THRESHOLD && goToUpdateView();
-          info.point.x < DELETE_POST_SWIPE_THRESHOLD && deletePost();
-        }}
         variants={variants}
         animate={
           loading
             ? "deleting"
             : data && !data.error
-            ? "deleted"
-            : editing
-            ? "editing"
-            : "default"
+              ? "deleted"
+              : editing
+                ? "editing"
+                : "default"
         }
         transition={{ ease: "easeOut", duration: 0.2 }}
-        dragMomentum={false}
       >
-        <motion.div onTap={goToPostHref}>
-          <Box px={3} py={3}>
-          <PostDescription>{post.description}</PostDescription>
-            <Flex my={1} alignItems="center">
-              <SourceUrl>{extractDomain(post.href)}</SourceUrl>
-              <Detail>{formatDistance(postDate, new Date())} ago</Detail>
-            </Flex>
-          </Box>
-        </motion.div>
+        <Box px={3} py={3}>
+        <PostDescription>{post.description}</PostDescription>
+          <Flex my={1} alignItems="center">
+            <SourceUrl>{extractDomain(post.href)}</SourceUrl>
+            <Detail>{formatDistance(postDate, new Date())} ago</Detail>
+          </Flex>
+        </Box>
       </motion.div>
     </PostContainer>
   );
 };
+
+/* -------------------------------------------------------------------------- */
+/*                                    Index                                   */
+/* -------------------------------------------------------------------------- */
 
 export default () => {
   const { signout } = useAuth();
