@@ -84,9 +84,9 @@ const paletteColors = {
     400: lightness(baseColors.grey, 60),
     500: lightness(baseColors.grey, 50),
     600: lightness(baseColors.grey, 40),
-    700: lightness(baseColors.grey, 30),
-    800: lightness(baseColors.grey, 20),
-    900: lightness(baseColors.grey, 10)
+    700: lightness(baseColors.grey, 25),
+    800: lightness(baseColors.grey, 10),
+    900: lightness(baseColors.grey, 5)
   }
 };
 

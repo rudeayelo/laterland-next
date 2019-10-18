@@ -8,7 +8,7 @@ import {
 import format from "date-fns/lightFormat";
 import formatDistance from "date-fns/formatDistance";
 import extractDomain from "extract-domain";
-import { Box, Button, Flex, Text } from "@chakra-ui/core";
+import { Box, Button, Flex, IconButton, Text } from "@chakra-ui/core";
 import { motion, useMotionValue, useTransform } from "framer-motion";
 import {
   MdCode,
@@ -16,10 +16,17 @@ import {
   MdDescription,
   MdEdit,
   MdLink,
+  MdSync,
 } from "react-icons/md";
 import { FaYoutube, FaGithub, FaTwitter } from "react-icons/fa";
 import { Alert, Icon, Loading, PageLoading } from "../components";
-import { useAlert, useApi, useAuth, useLocalStorage, useScrollYPosition } from "../hooks";
+import {
+  useAlert,
+  useApi,
+  useAuth,
+  useLocalStorage,
+  useScrollYPosition
+} from "../hooks";
 
 /* -------------------------------------------------------------------------- */
 /*                               Post container                               */
@@ -46,9 +53,17 @@ PostContainer.defaultProps = {
 /*                                 Post title                                 */
 /* -------------------------------------------------------------------------- */
 
-// @ts-ignore
-const PostDescriptionStyle = styled(Text)`text-decoration: solid underline ${({theme}) => theme.colors.blue["300"]}`
-const PostDescription = props => <PostDescriptionStyle lineHeight="base" fontWeight="medium" {...props} />
+const PostDescriptionStyle = styled(Text)`
+  /*
+  // @ts-ignore */
+  text-decoration: solid underline ${({theme}) => theme.colors.blue["300"]}
+`
+const PostDescription = props =>
+  <PostDescriptionStyle
+    lineHeight="base"
+    fontWeight="medium"
+    color="gray.900"
+    {...props} />
 
 /* -------------------------------------------------------------------------- */
 /*                                Post details                                */
@@ -107,7 +122,12 @@ const SourceUrl = ({ children }) => {
 
   return (
     <Detail display="inline-flex" alignItems="center">
-      <Icon as={SourceIcon} color={color} size={14} style={{ display: "inline-block" }} />
+      <Icon
+        as={SourceIcon}
+        color={color}
+        size={14}
+        style={{ display: "inline-block" }}
+      />
       <Text as="span" ml={1} color={color}>
         {children}
       </Text>
@@ -125,8 +145,17 @@ const SourceUrl = ({ children }) => {
 const EDIT_POST_SWIPE_THRESHOLD = 50;
 const DELETE_POST_SWIPE_THRESHOLD = -50;
 const INDICATOR_WIDTH = "20vw";
-const sharedIndicatorStyle = { y: "-50%", position: "absolute", top: "50%" } as const
-const sharedIndicatorHandleStyle = { width: INDICATOR_WIDTH, height: "100%", position: "absolute", top: 0, } as const
+const sharedIndicatorStyle = {
+  y: "-50%",
+  position: "absolute",
+  top: "50%",
+} as const
+const sharedIndicatorHandleStyle = {
+  width: INDICATOR_WIDTH,
+  height: "100%",
+  position: "absolute",
+  top: 0,
+} as const
 
 const EditIndicator = ({ dragX, onDragEnd }) => {
   const x = useTransform(
@@ -302,6 +331,18 @@ export default () => {
   const scrollYPos = useScrollYPosition();
   const isAfterMount = useRef(null);
   const { data, error, loading } = useApi(`/list`, { body: { toread: "yes" } });
+  const {
+    data: newData,
+    error: newDataError,
+    loading: syncing,
+    execute: sync
+  } = useApi(`/list`, {
+    body: { toread: "yes", fetchFromPinboard: true },
+    lazy: true
+  });
+
+  const posts = newData?.posts || data?.posts
+  const syncPending = newData?.syncPending || data?.syncPending
 
   useEffect(() => {
     if (isAfterMount.current) {
@@ -328,7 +369,13 @@ export default () => {
         m={3}
       >
         <Text>Error loading posts</Text>
-        <Button onClick={signout} variantColor="white" variant="outline" ml="auto" size="sm">
+        <Button
+          onClick={signout}
+          variantColor="white"
+          variant="outline"
+          ml="auto"
+          size="sm"
+        >
           Try signin out
         </Button>
       </Alert>
@@ -346,10 +393,41 @@ export default () => {
       }}
       transition={{ ease: "easeOut", duration: 0.2 }}
     >
-      <Text as="h1" fontWeight="medium" fontSize="xl" pt={10} pb={3} px={3} m={0}>
-        {data.length} unread posts
-      </Text>
-      {data.map(post => <Post post={post} key={post.id} />)}
+      <Flex justifyContent="space-between" mt={10} mb={3} mx={3}>
+        <Text
+          as="h1"
+          color="gray.900"
+          fontWeight="medium"
+          fontSize="xl"
+        >
+          {posts.length} unread posts
+        </Text>
+        <Box position="relative">
+          <IconButton
+            size="sm"
+            onClick={sync}
+            icon={MdSync}
+            aria-label="Get new posts"
+            isDisabled={!syncPending}
+            isLoading={syncing}
+          />
+          {syncPending &&
+            <Box
+              backgroundColor="blue.500"
+              borderStyle="solid"
+              borderWidth={2}
+              borderColor="white"
+              width={3}
+              height={3}
+              borderRadius="rounded"
+              position="absolute"
+              top={-4}
+              right={-4}
+            />
+          }
+        </Box>
+      </Flex>
+      {posts.map(post => <Post post={post} key={post.id} />)}
     </motion.div>
   );
 };

@@ -12,7 +12,7 @@ import { Post, PublicPost, UID } from "../../typings";
 
 const NOW = new Date();
 
-const shouldFetchPostsFromPinboard = (
+const canFetchPostsFromPinboard = (
   lastPinboardUpdate: Date,
   lastStoredUpdate: Date
 ): boolean => {
@@ -130,9 +130,10 @@ const updatePosts = async ({
 export default async (req, res) => {
   res.setHeader("Content-Type", "application/json");
 
-  const { userToken, toread } = JSON.parse(req.body);
+  const { toread, userToken, fetchFromPinboard } = JSON.parse(req.body);
 
   const uid = await verifyUserIdToken(userToken);
+  let posts = await getDbPosts({ uid, toread });
 
   const userDoc = await db.doc(`${USERS_COLLECTION}/${uid}`).get();
   const pinboardToken = await getPinboardToken({ uid });
@@ -142,14 +143,20 @@ export default async (req, res) => {
     parseInt(lastStoredUpdateDoc.seconds, 10) * 1000
   );
 
-  if (shouldFetchPostsFromPinboard(lastPinboardUpdate, lastStoredUpdate)) {
+  let syncPending = canFetchPostsFromPinboard(
+    lastPinboardUpdate,
+    lastStoredUpdate
+  );
+
+  if ((!posts.length || fetchFromPinboard) && syncPending) {
     setLastUpdate({ uid, lastPinboardUpdate });
     const data = await fetchPosts({ pinboardToken });
     await updatePosts({ posts: data, uid });
+
+    posts = await getDbPosts({ uid, toread });
+    syncPending = false;
   }
 
-  const posts = await getDbPosts({ uid, toread });
-
   console.log("--> Return posts from Firebase");
-  res.status(200).end(JSON.stringify(posts));
+  res.status(200).end(JSON.stringify({ posts, syncPending }));
 };
