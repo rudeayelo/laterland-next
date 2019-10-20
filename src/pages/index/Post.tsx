@@ -334,7 +334,17 @@ const Post = ({ post, isCheckpoint }) => {
         <Box px={3} py={3}>
           <PostDescription>
             {isCheckpoint &&
-              <Badge transform="translateY(-2px)" borderColor="orange.200" borderStyle="solid" borderWidth={1} variantColor="orange" borderRadius="full" px={1} mr={2}>
+              <Badge
+                as="span"
+                transform="translateY(-2px)"
+                borderColor="orange.200"
+                borderStyle="solid"
+                borderWidth={1}
+                variantColor="orange"
+                borderRadius="full"
+                px={1}
+                mr={2}
+              >
                 <Icon
                   as={MdRemoveRedEye}
                   size={4}
