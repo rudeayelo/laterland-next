@@ -178,6 +178,7 @@ export default () => {
                 onChange={e => setTags(e)}
                 submitOnBlur={false}
                 selectAllOnFocus={false}
+                startWithEditView
                 fontSize="sm"
                 placeholder="tags"
                 mt={2}
