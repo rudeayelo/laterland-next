@@ -25,8 +25,6 @@ import {
   useAlert,
   useApi,
   useAuth,
-  useLocalStorage,
-  useScrollYPosition
 } from "../hooks";
 
 /* -------------------------------------------------------------------------- */
@@ -243,7 +241,12 @@ const Post = ({ post, isCheckpoint }) => {
   const postEl = useRef<HTMLInputElement>(null);
   const x = useMotionValue(0);
   const [editing, setEditing] = useState(false);
-  const { data, error, loading, execute: deletePost } = useApi(`/delete`, {
+  const {
+    data: deletePostData,
+    error: deletePostError,
+    loading: deletePostLoading,
+    execute: deletePost
+  } = useApi(`/delete`, {
     body: { url: post.href, hash: post.id },
     lazy: true
   });
@@ -259,23 +262,26 @@ const Post = ({ post, isCheckpoint }) => {
       postEl.current.scrollIntoView({ block: "center" });
     }
   }, [isCheckpoint, postEl]);
+
+  useEffect(() => {
+    if (!deletePostLoading && deletePostData && !deletePostData.error) {
       alert({
         title: "Post deleted successfuly",
         icon: MdDelete,
         intent: "success"
       })
     }
-  }, [loading, data]);
+  }, [deletePostLoading, deletePostData]);
 
   useEffect(() => {
-    if (error || data?.error) {
+    if (deletePostError || deletePostData?.error) {
       alert({
         title: "Error deleting the post",
-        description: error || data.data,
+        description: deletePostError || deletePostData.data,
         intent: "error"
       })
     }
-  }, [error, data]);
+  }, [deletePostError, deletePostData]);
 
   const variants = {
     default: {
@@ -311,15 +317,15 @@ const Post = ({ post, isCheckpoint }) => {
   return (
     <PostContainer isCheckpoint={isCheckpoint} ref={postEl}>
       <EditIndicator dragX={x} onDragEnd={goToUpdateView} />
-      <DeleteIndicator dragX={x} onDragEnd={deletePost} deleting={loading} />
+      <DeleteIndicator dragX={x} onDragEnd={deletePost} deleting={deletePostLoading} />
       <motion.div
         onTap={goToPostHref}
         style={{ x }}
         variants={variants}
         animate={
-          loading
+          deletePostLoading
             ? "deleting"
-            : data && !data.error
+            : deletePostData && !deletePostData.error
               ? "deleted"
               : editing
                 ? "editing"

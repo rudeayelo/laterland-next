@@ -28,16 +28,17 @@ export default () => {
     { body: { url } }
   );
   const {
-    data: updateResponse,
-    error: updateResponseError,
-    loading: updateLoading,
-    execute: update
+    data: updatePostResponse,
+    error: updatePostResponseError,
+    loading: updatePostLoading,
+    execute: updatePost
   } = useApi(`/update`, {
     body: { url, description, tags, hash: data && data.hash },
     lazy: true
   });
   const {
     data: deletePostResponse,
+    error: deletePostResponseError,
     loading: deletePostLoading,
     execute: deletePost
   } = useApi(`/delete`, {
@@ -52,9 +53,10 @@ export default () => {
     }
   }, [data]);
 
+  // Update post feedback
   useEffect(() => {
-    if (!updateLoading && updateResponse) {
-      if (!updateResponse.error) {
+    if (!updatePostLoading && updatePostResponse) {
+      if (!updatePostResponse.error) {
         const redirect = setTimeout(() => {
           router.push(`/`);
         }, 3000);
@@ -79,12 +81,35 @@ export default () => {
       } else {
         alert({
           title: "Error updating the post",
-          description: updateResponseError || updateResponse.data,
+          description: updatePostResponseError || updatePostResponse.data,
           intent: "error"
         });
       }
     }
-  }, [updateResponse, updateLoading]);
+  }, [updatePostResponse, updatePostLoading]);
+
+  // Delete post feedback
+  useEffect(() => {
+    if (!deletePostLoading && deletePostResponse) {
+      if (!deletePostResponse.error) {
+        setTimeout(() => {
+          router.push(`/`);
+        }, 3000);
+
+        alert({
+          title: "Post deleted",
+          intent: "success",
+          icon: MdDelete
+        });
+      } else {
+        alert({
+          title: "Error deleting the post",
+          description: deletePostResponseError || deletePostResponse.data,
+          intent: "error"
+        });
+      }
+    }
+  }, [deletePostResponse, deletePostLoading]);
 
   const onTagClick = (e, suggestedTag) => {
     e.stopPropagation();
@@ -121,7 +146,7 @@ export default () => {
               flexDirection="column"
               onSubmit={e => {
                 e.preventDefault();
-                update();
+                updatePost();
               }}
             >
               <Editable
@@ -203,11 +228,11 @@ export default () => {
                 Delete
               </Button>
               <Button
-                onClick={update}
+                onClick={updatePost}
                 variantColor="green"
                 leftIcon={MdSave}
-                isLoading={updateLoading}
-                loadingText={updateLoading && "Updating"}
+                isLoading={updatePostLoading}
+                loadingText={updatePostLoading && "Updating"}
                 isDisabled={!tags.length}
                 ml={5}
               >
