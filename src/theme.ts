@@ -29,11 +29,11 @@ const baseColors = {
 
 const paletteColors = {
   blue: {
-    50: lighten(baseColors.blue, 0.5),
-    100: lighten(baseColors.blue, 0.4),
-    200: lighten(baseColors.blue, 0.3),
-    300: lighten(baseColors.blue, 0.2),
-    400: lighten(baseColors.blue, 0.1),
+    50: lighten(baseColors.blue, 0.6),
+    100: lighten(baseColors.blue, 0.5),
+    200: lighten(baseColors.blue, 0.4),
+    300: lighten(baseColors.blue, 0.3),
+    400: lighten(baseColors.blue, 0.2),
     500: baseColors.blue,
     600: darken(baseColors.blue, 0.2),
     700: darken(baseColors.blue, 0.4),
@@ -53,11 +53,11 @@ const paletteColors = {
     900: darken(baseColors.green, 0.8)
   },
   orange: {
-    50: lighten(baseColors.orange, 0.5),
-    100: lighten(baseColors.orange, 0.4),
-    200: lighten(baseColors.orange, 0.3),
-    300: lighten(baseColors.orange, 0.2),
-    400: lighten(baseColors.orange, 0.1),
+    50: lighten(baseColors.orange, 0.9),
+    100: lighten(baseColors.orange, 0.7),
+    200: lighten(baseColors.orange, 0.5),
+    300: lighten(baseColors.orange, 0.3),
+    400: lighten(baseColors.orange, 0.15),
     500: baseColors.orange,
     600: darken(baseColors.orange, 0.2),
     700: darken(baseColors.orange, 0.4),

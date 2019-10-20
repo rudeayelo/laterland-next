@@ -8,7 +8,7 @@ import {
 import format from "date-fns/lightFormat";
 import formatDistance from "date-fns/formatDistance";
 import extractDomain from "extract-domain";
-import { Box, Button, Flex, IconButton, Text } from "@chakra-ui/core";
+import { Badge, Box, Button, Flex, IconButton, Text } from "@chakra-ui/core";
 import { motion, useMotionValue, useTransform } from "framer-motion";
 import {
   MdCode,
@@ -16,6 +16,7 @@ import {
   MdDescription,
   MdEdit,
   MdLink,
+  MdRemoveRedEye,
   MdSync,
 } from "react-icons/md";
 import { FaYoutube, FaGithub, FaTwitter } from "react-icons/fa";
@@ -32,11 +33,17 @@ import {
 /*                               Post container                               */
 /* -------------------------------------------------------------------------- */
 
-interface PostContainerProps extends BorderProps {}
+interface PostContainerProps extends BorderProps {
+  isCheckpoint?: boolean
+}
 
 const PostContainer = styled(Box)<PostContainerProps>`
   cursor: pointer;
   overflow: hidden;
+  background: ${({isCheckpoint, theme}) =>
+    // @ts-ignore
+    isCheckpoint && theme.colors.orange["50"]
+  };
 
   &:not(:last-child) {
     ${border}
@@ -230,18 +237,28 @@ const DeleteIndicator = ({ deleting, dragX, onDragEnd }) => {
 /*                                    Post                                    */
 /* -------------------------------------------------------------------------- */
 
-const Post = ({ post }) => {
+const Post = ({ post, isCheckpoint }) => {
   const router = useRouter();
   const alert = useAlert();
+  const postEl = useRef<HTMLInputElement>(null);
   const x = useMotionValue(0);
   const [editing, setEditing] = useState(false);
   const { data, error, loading, execute: deletePost } = useApi(`/delete`, {
     body: { url: post.href, hash: post.id },
     lazy: true
   });
+  const {
+    execute: setCheckpoint
+  } = useApi(`/checkpoint`, {
+    body: { hash: post.id },
+    lazy: true
+  });
 
   useEffect(() => {
-    if (!loading && data && !data.error) {
+    if (isCheckpoint && postEl && postEl.current) {
+      postEl.current.scrollIntoView({ block: "center" });
+    }
+  }, [isCheckpoint, postEl]);
       alert({
         title: "Post deleted successfuly",
         icon: MdDelete,
@@ -287,11 +304,12 @@ const Post = ({ post }) => {
   };
 
   const goToPostHref = () => {
+    setCheckpoint()
     window.location.href = post.href;
   };
 
   return (
-    <PostContainer>
+    <PostContainer isCheckpoint={isCheckpoint} ref={postEl}>
       <EditIndicator dragX={x} onDragEnd={goToUpdateView} />
       <DeleteIndicator dragX={x} onDragEnd={deletePost} deleting={loading} />
       <motion.div
@@ -310,7 +328,17 @@ const Post = ({ post }) => {
         transition={{ ease: "easeOut", duration: 0.2 }}
       >
         <Box px={3} py={3}>
-        <PostDescription>{post.description}</PostDescription>
+          <PostDescription>
+            {isCheckpoint &&
+              <Badge transform="translateY(-2px)" borderColor="orange.200" borderStyle="solid" borderWidth={1} variantColor="orange" borderRadius="full" px={1} mr={2}>
+                <Icon
+                  as={MdRemoveRedEye}
+                  size={4}
+                />
+              </Badge>
+            }
+            {post.description}
+          </PostDescription>
           <Flex my={1} alignItems="center">
             <SourceUrl>{extractDomain(post.href)}</SourceUrl>
             <Detail>{formatDistance(postDate, new Date())} ago</Detail>
@@ -327,9 +355,8 @@ const Post = ({ post }) => {
 
 export default () => {
   const { signout } = useAuth();
-  const [scrollPos, setScrollPos] = useLocalStorage("scrollPos", 0);
-  const scrollYPos = useScrollYPosition();
-  const isAfterMount = useRef(null);
+  const [posts, setPosts] = useState([])
+  const [syncPending, setSyncPending] = useState(false)
   const { data, error, loading } = useApi(`/list`, { body: { toread: "yes" } });
   const {
     data: newData,
@@ -341,24 +368,10 @@ export default () => {
     lazy: true
   });
 
-  const posts = newData?.posts || data?.posts
-  const syncPending = newData?.syncPending || data?.syncPending
-
   useEffect(() => {
-    if (isAfterMount.current) {
-      setScrollPos(scrollYPos);
-    } else {
-      isAfterMount.current = true;
-    }
-  }, [scrollYPos]);
-
-  useEffect(() => {
-    !loading &&
-      window.scrollTo({
-        top: scrollPos,
-        behavior: "smooth"
-      });
-  }, [loading]);
+    setPosts(newData?.posts || data?.posts || [])
+    setSyncPending(newData?.syncPending || data?.syncPending || false)
+  }, [data, newData])
 
   if (error)
     return (
@@ -427,7 +440,15 @@ export default () => {
           }
         </Box>
       </Flex>
-      {posts.map(post => <Post post={post} key={post.id} />)}
+      {
+        posts.map(post => (
+          <Post
+            post={post}
+            isCheckpoint={post.id === data.checkpoint}
+            key={post.id}
+          />
+        ))
+      }
     </motion.div>
   );
 };

@@ -3,6 +3,7 @@ import differenceInMinutes from "date-fns/differenceInMinutes";
 import formatDistanceToNow from "date-fns/formatDistanceToNow";
 import { db } from "../../firebase-admin";
 import {
+  getCheckpoint,
   getPinboardToken,
   pinboardEndpoint,
   verifyUserIdToken
@@ -137,6 +138,7 @@ export default async (req, res) => {
 
   const userDoc = await db.doc(`${USERS_COLLECTION}/${uid}`).get();
   const pinboardToken = await getPinboardToken({ uid });
+  const checkpoint = await getCheckpoint({ uid });
   const lastPinboardUpdate = await fetchLastUpdate({ pinboardToken });
   const lastStoredUpdateDoc = userDoc && userDoc.data().lastUpdate;
   const lastStoredUpdate = new Date(
@@ -158,5 +160,5 @@ export default async (req, res) => {
   }
 
   console.log("--> Return posts from Firebase");
-  res.status(200).end(JSON.stringify({ posts, syncPending }));
+  res.status(200).end(JSON.stringify({ posts, syncPending, checkpoint }));
 };
