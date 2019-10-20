@@ -3,7 +3,7 @@ import { useAuth } from "./useAuth";
 
 const useApi = (
   endpoint: string,
-  { body, lazy }: { body: {}; lazy?: boolean }
+  { body, lazy }: { body?: {}; lazy?: boolean }
 ) => {
   const {
     user: { userToken }

@@ -10,15 +10,17 @@ import {
   Text
 } from "@chakra-ui/core";
 import { motion } from "framer-motion";
+import matchSorter from "match-sorter";
+import { MdDelete, MdSave } from "react-icons/md";
 import { Loading, PageLoading } from "../components";
 import { useAlert, useApi } from "../hooks";
-import { MdDelete, MdSave } from "react-icons/md";
 
 export default () => {
   const router = useRouter();
   const { url, fallback_date } = router.query;
   const alert = useAlert();
   const [tags, setTags] = useState("");
+  const [autocompleteTags, setAutocompleteTags] = useState([]);
   const [description, setDescription] = useState("");
   const { data, error, loading } = useApi(`/get`, {
     body: { url, dt: fallback_date }
@@ -45,6 +47,25 @@ export default () => {
     body: { url, hash: data && data.hash },
     lazy: true
   });
+  const { data: allTagsResponse } = useApi(`/tags`, {});
+
+  useEffect(() => {
+    if (tags.slice(-1) !== " ") {
+      const inputTags = tags.split(" ");
+      const lastTag = inputTags[inputTags.length - 1];
+
+      if (allTagsResponse) {
+        let entries: [string, number][] = Object.entries(allTagsResponse);
+        let matches = matchSorter(entries, lastTag, {
+          keys: [item => item[0]]
+        }).slice(0, 3);
+
+        if (tags.length > 2) {
+          setAutocompleteTags(matches.map(match => match[0]));
+        }
+      }
+    }
+  }, [tags]);
 
   useEffect(() => {
     if (data) {
@@ -114,6 +135,20 @@ export default () => {
   const onTagClick = (e, suggestedTag) => {
     e.stopPropagation();
     return setTags(tags => `${tags} ${suggestedTag}`);
+  };
+
+  const onAutocompleteTagClick = (e, suggestedTag) => {
+    e.stopPropagation();
+    let tagsInput = tags.split(" ");
+    let firstTags = tagsInput
+      .filter((_, index) => index !== tagsInput.length - 1)
+      .join(" ");
+
+    setTimeout(() => {
+      setAutocompleteTags([]);
+    }, 0);
+
+    return setTags(`${firstTags} ${suggestedTag}`);
   };
 
   if (error) return <Text>Error loading post</Text>;
@@ -195,23 +230,42 @@ export default () => {
             {suggestedTagsLoading ? (
               <Loading size="32px" pt={3} />
             ) : (
-              !!suggestedTags.length && (
+              (!!suggestedTags.length || !!autocompleteTags.length) && (
                 <Box pt={4}>
-                  {suggestedTags.map(suggestedTag => (
-                    <Button
-                      variantColor="blue"
-                      fontWeight="normal"
-                      onClick={e => onTagClick(e, suggestedTag)}
-                      size="xs"
-                      mr={2}
-                      mb={2}
-                      px={3}
-                      borderRadius="rounded"
-                      key={suggestedTag}
-                    >
-                      {suggestedTag}
-                    </Button>
-                  ))}
+                  {!!autocompleteTags.length &&
+                    autocompleteTags.map(autocompleteTag => (
+                      <Button
+                        variantColor="green"
+                        fontWeight="normal"
+                        onClick={e =>
+                          onAutocompleteTagClick(e, autocompleteTag)
+                        }
+                        size="xs"
+                        mr={2}
+                        mb={2}
+                        px={3}
+                        borderRadius="rounded"
+                        key={autocompleteTag}
+                      >
+                        {autocompleteTag}
+                      </Button>
+                    ))}
+                  {!!suggestedTags.length &&
+                    suggestedTags.map(suggestedTag => (
+                      <Button
+                        variantColor="blue"
+                        fontWeight="normal"
+                        onClick={e => onTagClick(e, suggestedTag)}
+                        size="xs"
+                        mr={2}
+                        mb={2}
+                        px={3}
+                        borderRadius="rounded"
+                        key={suggestedTag}
+                      >
+                        {suggestedTag}
+                      </Button>
+                    ))}
                 </Box>
               )
             )}
