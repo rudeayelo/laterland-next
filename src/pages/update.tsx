@@ -7,6 +7,9 @@ import {
   EditableInput,
   EditablePreview,
   Flex,
+  Menu,
+  MenuList,
+  MenuItem,
   Text
 } from "@chakra-ui/core";
 import { motion } from "framer-motion";
@@ -134,7 +137,7 @@ export default () => {
 
   const onTagClick = (e, suggestedTag) => {
     e.stopPropagation();
-    return setTags(tags => `${tags} ${suggestedTag}`);
+    return setTags(tags => `${tags} ${suggestedTag} `);
   };
 
   const onAutocompleteTagClick = (e, suggestedTag) => {
@@ -148,7 +151,7 @@ export default () => {
       setAutocompleteTags([]);
     }, 0);
 
-    return setTags(`${firstTags} ${suggestedTag}`);
+    return setTags(`${firstTags} ${suggestedTag} `);
   };
 
   if (error) return <Text>Error loading post</Text>;
@@ -217,7 +220,35 @@ export default () => {
                 fontSize="sm"
                 placeholder="tags"
                 mt={2}
+                position="relative"
               >
+                {!!autocompleteTags.length && (
+                  <Box
+                    position="absolute"
+                    bottom="100%"
+                    background="white"
+                    borderWidth={1}
+                    borderStyle="solid"
+                    borderColor="gray.200"
+                    borderRadius="md"
+                  >
+                    {autocompleteTags.map(autocompleteTag => (
+                      <Button
+                        variant="link"
+                        variantColor="blue"
+                        fontWeight="normal"
+                        fontSize="sm"
+                        p={3}
+                        onClick={e =>
+                          onAutocompleteTagClick(e, autocompleteTag)
+                        }
+                        key={autocompleteTag}
+                      >
+                        {autocompleteTag}
+                      </Button>
+                    ))}
+                  </Box>
+                )}
                 <EditablePreview py={1} />
                 <EditableInput
                   autoCorrect="off"
@@ -230,26 +261,8 @@ export default () => {
             {suggestedTagsLoading ? (
               <Loading size="32px" pt={3} />
             ) : (
-              (!!suggestedTags.length || !!autocompleteTags.length) && (
+              !!suggestedTags.length && (
                 <Box pt={4}>
-                  {!!autocompleteTags.length &&
-                    autocompleteTags.map(autocompleteTag => (
-                      <Button
-                        variantColor="green"
-                        fontWeight="normal"
-                        onClick={e =>
-                          onAutocompleteTagClick(e, autocompleteTag)
-                        }
-                        size="xs"
-                        mr={2}
-                        mb={2}
-                        px={3}
-                        borderRadius="rounded"
-                        key={autocompleteTag}
-                      >
-                        {autocompleteTag}
-                      </Button>
-                    ))}
                   {!!suggestedTags.length &&
                     suggestedTags.map(suggestedTag => (
                       <Button
