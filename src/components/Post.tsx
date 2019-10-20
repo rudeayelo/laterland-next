@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/router";
-import styled from "../../styled";
+import styled from "../styled";
 import {
   border,
   BorderProps,
@@ -19,11 +19,12 @@ import {
   MdRemoveRedEye,
 } from "react-icons/md";
 import { FaYoutube, FaGithub, FaTwitter } from "react-icons/fa";
-import { Icon, Loading } from "../../components";
+import { Icon } from "./Icon";
+import { Loading } from "./Loading";
 import {
   useAlert,
   useApi,
-} from "../../hooks";
+} from "../hooks";
 
 /* -------------------------------------------------------------------------- */
 /*                               Post container                               */

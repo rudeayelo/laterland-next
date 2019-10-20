@@ -4,12 +4,11 @@ import { motion } from "framer-motion";
 import {
   MdSync,
 } from "react-icons/md";
-import { Alert, PageLoading } from "../components";
+import { Alert, PageLoading, Post } from "../components";
 import {
   useApi,
   useAuth,
 } from "../hooks";
-import { Post } from "./index/Post"
 
 export default () => {
   const { signout } = useAuth();
