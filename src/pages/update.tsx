@@ -15,14 +15,14 @@ import {
 import { motion } from "framer-motion";
 import matchSorter from "match-sorter";
 import { MdDelete, MdSave } from "react-icons/md";
-import { Loading, PageLoading } from "../components";
+import { Loading, PageLoading, TagsInput } from "../components";
 import { useAlert, useApi } from "../hooks";
 
 export default () => {
   const router = useRouter();
   const { url, fallback_date } = router.query;
   const alert = useAlert();
-  const [tags, setTags] = useState("");
+  const [tags, setTags] = useState([]);
   const [autocompleteTags, setAutocompleteTags] = useState([]);
   const [description, setDescription] = useState("");
   const { data, error, loading } = useApi(`/get`, {
@@ -38,7 +38,7 @@ export default () => {
     loading: updatePostLoading,
     execute: updatePost
   } = useApi(`/update`, {
-    body: { url, description, tags, hash: data && data.hash },
+    body: { url, description, tags: tags.join(" "), hash: data && data.hash },
     lazy: true
   });
   const {
@@ -52,30 +52,40 @@ export default () => {
   });
   const { data: allTagsResponse } = useApi(`/tags`, {});
 
-  useEffect(() => {
-    if (tags.slice(-1) !== " ") {
-      const inputTags = tags.split(" ");
-      const lastTag = inputTags[inputTags.length - 1];
+  const onTagClick = (e, suggestedTag) => {
+    e.stopPropagation();
+    return setTags(tags => [...tags, suggestedTag]);
+  };
 
-      if (allTagsResponse) {
-        let entries: [string, number][] = Object.entries(allTagsResponse);
-        let matches = matchSorter(entries, lastTag, {
-          keys: [item => item[0]]
-        }).slice(0, 3);
+  const onNextTagChange = value => {
+    if (allTagsResponse) {
+      let entries: [string, number][] = Object.entries(allTagsResponse);
+      let matches = matchSorter(entries, value, {
+        keys: [item => item[0]]
+      }).slice(0, 3);
 
-        if (tags.length > 2) {
-          setAutocompleteTags(matches.map(match => match[0]));
-        }
+      if (value.length > 2) {
+        setAutocompleteTags(matches.map(match => match[0]));
       }
     }
-  }, [tags]);
+  };
+
+  const onAutocompleteTagClick = (e, autocompleteTag) => {
+    e.stopPropagation();
+
+    return setTags(tags => [...tags, autocompleteTag]);
+  };
 
   useEffect(() => {
     if (data) {
       setDescription(data.description);
-      setTags(data.tags);
+      setTags(data.tags.length ? data.tags.split(" ") : []);
     }
   }, [data]);
+
+  useEffect(() => {
+    setAutocompleteTags([]);
+  }, [tags]);
 
   // Update post feedback
   useEffect(() => {
@@ -135,25 +145,6 @@ export default () => {
     }
   }, [deletePostResponse, deletePostLoading]);
 
-  const onTagClick = (e, suggestedTag) => {
-    e.stopPropagation();
-    return setTags(tags => `${tags} ${suggestedTag} `);
-  };
-
-  const onAutocompleteTagClick = (e, suggestedTag) => {
-    e.stopPropagation();
-    let tagsInput = tags.split(" ");
-    let firstTags = tagsInput
-      .filter((_, index) => index !== tagsInput.length - 1)
-      .join(" ");
-
-    setTimeout(() => {
-      setAutocompleteTags([]);
-    }, 0);
-
-    return setTags(`${firstTags} ${suggestedTag} `);
-  };
-
   if (error) return <Text>Error loading post</Text>;
 
   return (
@@ -211,17 +202,7 @@ export default () => {
               >
                 {data.href}
               </Text>
-              <Editable
-                value={tags}
-                onChange={e => setTags(e)}
-                submitOnBlur={false}
-                selectAllOnFocus={false}
-                startWithEditView
-                fontSize="sm"
-                placeholder="tags"
-                mt={2}
-                position="relative"
-              >
+              <Box position="relative" mt={2}>
                 {!!autocompleteTags.length && (
                   <Box
                     position="absolute"
@@ -249,36 +230,37 @@ export default () => {
                     ))}
                   </Box>
                 )}
-                <EditablePreview py={1} />
-                <EditableInput
-                  autoCorrect="off"
-                  autoCapitalize="none"
-                  borderRadius="sm"
-                  py={1}
+                <TagsInput
+                  tags={tags}
+                  onAdd={setTags}
+                  onChange={onNextTagChange}
+                  onRemove={setTags}
                 />
-              </Editable>
+              </Box>
             </Flex>
             {suggestedTagsLoading ? (
-              <Loading size="32px" pt={3} />
+              <Loading size="32px" mt={2} />
             ) : (
               !!suggestedTags.length && (
                 <Box pt={4}>
                   {!!suggestedTags.length &&
-                    suggestedTags.map(suggestedTag => (
-                      <Button
-                        variantColor="blue"
-                        fontWeight="normal"
-                        onClick={e => onTagClick(e, suggestedTag)}
-                        size="xs"
-                        mr={2}
-                        mb={2}
-                        px={3}
-                        borderRadius="rounded"
-                        key={suggestedTag}
-                      >
-                        {suggestedTag}
-                      </Button>
-                    ))}
+                    suggestedTags
+                      .filter(suggestedTag => !tags.includes(suggestedTag))
+                      .map(suggestedTag => (
+                        <Button
+                          variantColor="blue"
+                          fontWeight="normal"
+                          onClick={e => onTagClick(e, suggestedTag)}
+                          size="xs"
+                          mr={2}
+                          mb={2}
+                          px={3}
+                          borderRadius="rounded"
+                          key={suggestedTag}
+                        >
+                          {suggestedTag}
+                        </Button>
+                      ))}
                 </Box>
               )
             )}
