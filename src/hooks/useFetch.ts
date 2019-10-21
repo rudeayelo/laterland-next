@@ -9,11 +9,14 @@ const useFetch = (
   const [loading, setLoading] = useState(Boolean(url) && !lazy);
   const proceed = useRef(true);
 
-  const execute = async () => {
+  const execute = async (newBody = null) => {
     setLoading(true);
 
     try {
-      const res = await fetch(url, body && { method: "POST", body });
+      const res = await fetch(
+        url,
+        body && { method: "POST", body: newBody || body }
+      );
       const response = await res.json();
       if (proceed) {
         setData(response);

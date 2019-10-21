@@ -9,10 +9,17 @@ const useApi = (
     user: { userToken }
   } = useAuth();
 
-  const { data, error, loading, execute } = useFetch(`/api${endpoint}`, {
-    body: JSON.stringify({ userToken, ...body }),
-    lazy
-  });
+  const { data, error, loading, execute: executeFetch } = useFetch(
+    `/api${endpoint}`,
+    {
+      body: JSON.stringify({ userToken, ...body }),
+      lazy
+    }
+  );
+
+  const execute = (newBody = {}) => {
+    executeFetch(JSON.stringify({ userToken, ...body, ...newBody }));
+  };
 
   return { data, error, loading, execute };
 };
