@@ -27,7 +27,7 @@ export default () => {
 
   useEffect(() => {
     setPosts(newData?.posts || data?.posts || [])
-    setSyncPending(newData?.syncPending || data?.syncPending || false)
+    setSyncPending(newData?.syncPending !== undefined ? newData?.syncPending : data?.syncPending)
   }, [data, newData])
 
   if (error)
