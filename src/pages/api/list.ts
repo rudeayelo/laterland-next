@@ -67,7 +67,7 @@ const fetchPosts = async ({
   const allPosts = await res.json();
   const unreadPosts = allPosts.reduce((acc: Post[], current) => {
     if (current.toread === "yes") {
-      return [...acc, { ...current, source: "Pinboard" }];
+      return [...acc, { ...current }];
     }
     return acc;
   }, []);

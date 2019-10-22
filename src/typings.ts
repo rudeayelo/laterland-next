@@ -1,5 +1,4 @@
 export type Post = {
-  source?: string;
   hash: string;
   toread: "yes" | "no";
   id: string;

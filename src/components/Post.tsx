@@ -205,6 +205,7 @@ const DeleteIndicator = ({ deleting, dragX, onDragEnd }) => {
     [-10, -45, DELETE_POST_SWIPE_THRESHOLD],
     ["hsl(10,0%,90%)", "hsl(10,10%,80%)", "hsl(10,70%,45%)"]
   );
+  const proceed = useRef(true)
 
   return (
     <>
@@ -212,9 +213,12 @@ const DeleteIndicator = ({ deleting, dragX, onDragEnd }) => {
         drag="x"
         style={{ right: 0, ...sharedIndicatorHandleStyle }}
         dragConstraints={{ left: 0, right: 0 }}
-        onUpdate={({x}) => dragX.set(x)}
+        onUpdate={({x}) => proceed.current && dragX.set(x)}
         onDragEnd={(_, info) => {
-          info.point.x < DELETE_POST_SWIPE_THRESHOLD && onDragEnd();
+          if (info.point.x < DELETE_POST_SWIPE_THRESHOLD) {
+            proceed.current = false;
+            onDragEnd()
+          };
         }}
         transition={{ ease: "easeOut", duration: 0.2 }}
       />
@@ -291,9 +295,11 @@ const Post = ({ post, isCheckpoint }) => {
       x: -50,
     },
     deleted: {
+      opacity: 0,
       height: 0,
       paddingTop: 0,
-      paddingBottom: 0
+      paddingBottom: 0,
+      x: 0
     },
     editing: {
       x: "50%"

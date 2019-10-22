@@ -266,7 +266,7 @@ export default () => {
             )}
             <Flex alignItems="center" alignSelf="flex-start" mt={5}>
               <Button
-                onClick={deletePost}
+                onClick={() => deletePost()}
                 variant="link"
                 variantColor="red"
                 size="sm"
@@ -278,7 +278,7 @@ export default () => {
                 Delete
               </Button>
               <Button
-                onClick={updatePost}
+                onClick={() => updatePost()}
                 variantColor="green"
                 leftIcon={MdSave}
                 isLoading={updatePostLoading}
