@@ -1,8 +1,8 @@
 import { Box, Button, Flex, IconButton, Text } from "@chakra-ui/core";
 import { motion } from "framer-motion";
 import { MdSync } from "react-icons/md";
-import { Alert, PageLoading, Post } from "../components";
-import { useApi, useAuth } from "../hooks";
+import { Alert, PageLoading, Post, useAuth } from "../components";
+import { useApi } from "../hooks";
 
 export default () => {
   const { signout } = useAuth();

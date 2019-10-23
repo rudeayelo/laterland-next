@@ -1,5 +1,5 @@
 import { useFetch } from "./useFetch";
-import { useAuth } from "./useAuth";
+import { useAuth } from "../components";
 
 const useApi = (
   endpoint: string,

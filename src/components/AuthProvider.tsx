@@ -1,4 +1,4 @@
-import React, { useReducer, useEffect, useRef } from "react";
+import React, { useContext, useEffect, useReducer, useRef } from "react";
 import firebase, { db } from "../firebase-client";
 import { USERS_COLLECTION } from "../constants";
 
@@ -31,7 +31,7 @@ export const UserContext = React.createContext<UserContext>({
 
 const userReducer = (state, action) => ({ ...state, ...action });
 
-const UserProvider = ({ children }) => {
+const AuthProvider = ({ children }) => {
   const [user, dispatch] = useReducer(userReducer, {});
   const userLoggedIn = useRef(null);
 
@@ -102,4 +102,28 @@ const UserProvider = ({ children }) => {
   );
 };
 
-export { UserProvider };
+const useAuth = () => {
+  const { user, setSignedOut } = useContext(UserContext);
+
+  const authProvider = new firebase.auth.GoogleAuthProvider();
+
+  const signin = () => {
+    firebase.auth().signInWithRedirect(authProvider);
+  };
+
+  const signout = () => {
+    firebase
+      .auth()
+      .signOut()
+      .then(function() {
+        setSignedOut();
+      })
+      .catch(error => {
+        console.warn("==> Error signing out the user:", error);
+      });
+  };
+
+  return { user, signin, signout };
+};
+
+export { AuthProvider, useAuth };

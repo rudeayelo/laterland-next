@@ -7,9 +7,6 @@ import {
   EditableInput,
   EditablePreview,
   Flex,
-  Menu,
-  MenuList,
-  MenuItem,
   Text
 } from "@chakra-ui/core";
 import { motion } from "framer-motion";
