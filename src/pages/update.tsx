@@ -49,8 +49,7 @@ export default () => {
   });
   const { data: allTagsResponse } = useApi(`/tags`, {});
 
-  const onTagClick = (e, suggestedTag) => {
-    e.stopPropagation();
+  const onTagClick = suggestedTag => {
     return setTags(tags => [...tags, suggestedTag]);
   };
 
@@ -67,10 +66,8 @@ export default () => {
     }
   };
 
-  const onAutocompleteTagClick = (e, autocompleteTag) => {
-    e.stopPropagation();
-
-    return setTags(tags => [...tags, autocompleteTag]);
+  const onAutocompleteTagClick = autocompleteTag => {
+    setTags(tags => [...tags, autocompleteTag]);
   };
 
   useEffect(() => {
@@ -217,9 +214,8 @@ export default () => {
                         fontWeight="normal"
                         fontSize="sm"
                         p={3}
-                        onClick={e =>
-                          onAutocompleteTagClick(e, autocompleteTag)
-                        }
+                        onMouseDown={e => e.preventDefault()}
+                        onClick={_ => onAutocompleteTagClick(autocompleteTag)}
                         key={autocompleteTag}
                       >
                         {autocompleteTag}
@@ -247,7 +243,8 @@ export default () => {
                         <Button
                           variantColor="blue"
                           fontWeight="normal"
-                          onClick={e => onTagClick(e, suggestedTag)}
+                          onMouseDown={e => e.preventDefault()}
+                          onClick={_ => onTagClick(suggestedTag)}
                           size="xs"
                           mr={2}
                           mb={2}
