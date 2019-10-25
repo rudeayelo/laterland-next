@@ -6,8 +6,6 @@ import {
 } from "../../helpers";
 
 export default async (req, res) => {
-  res.setHeader("Content-Type", "application/json");
-
   const { userToken, url } = JSON.parse(req.body);
 
   const uid = await verifyUserIdToken(userToken);
@@ -24,5 +22,6 @@ export default async (req, res) => {
   const suggestedTagsSet = new Set([...popular, ...recommended]);
 
   console.log("==> Return popular and recommended tags from Pinboard");
+  res.setHeader("Content-Type", "application/json");
   res.status(200).end(JSON.stringify(suggestedTagsSet));
 };

@@ -6,8 +6,6 @@ import {
 } from "../../helpers";
 
 export default async (req, res) => {
-  res.setHeader("Content-Type", "application/json");
-
   const { userToken } = JSON.parse(req.body);
 
   const uid = await verifyUserIdToken(userToken);
@@ -18,5 +16,6 @@ export default async (req, res) => {
 
   const tags = await pinboardTags.json();
 
+  res.setHeader("Content-Type", "application/json");
   res.status(200).end(JSON.stringify(tags));
 };

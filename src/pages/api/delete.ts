@@ -8,8 +8,6 @@ import {
 import { USERS_COLLECTION, POSTS_COLLECTION } from "../../constants";
 
 export default async (req, res) => {
-  res.setHeader("Content-Type", "application/json");
-
   const { userToken, url, hash } = JSON.parse(req.body);
 
   const uid = await verifyUserIdToken(userToken);
@@ -43,6 +41,7 @@ export default async (req, res) => {
     }
   }
 
+  res.setHeader("Content-Type", "application/json");
   res.status(200).end(
     JSON.stringify({
       data: result_code,

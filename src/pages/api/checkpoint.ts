@@ -3,8 +3,6 @@ import { verifyUserIdToken } from "../../helpers";
 import { USERS_COLLECTION } from "../../constants";
 
 export default async (req, res) => {
-  res.setHeader("Content-Type", "application/json");
-
   const { userToken, hash } = JSON.parse(req.body);
 
   const uid = await verifyUserIdToken(userToken);
@@ -18,5 +16,6 @@ export default async (req, res) => {
     console.warn("==> Failed updating the checkpoint:", error);
   }
 
+  res.setHeader("Content-Type", "application/json");
   res.status(200).end();
 };

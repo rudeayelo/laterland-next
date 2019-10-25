@@ -129,11 +129,10 @@ const updatePosts = async ({
 };
 
 export default async (req, res) => {
-  res.setHeader("Content-Type", "application/json");
-
   const { toread, userToken, fetchFromPinboard } = JSON.parse(req.body);
 
   const uid = await verifyUserIdToken(userToken);
+
   let posts = await getDbPosts({ uid, toread });
 
   const userDoc = await db.doc(`${USERS_COLLECTION}/${uid}`).get();
@@ -160,5 +159,6 @@ export default async (req, res) => {
   }
 
   console.log("--> Return posts from Firebase");
+  res.setHeader("Content-Type", "application/json");
   res.status(200).end(JSON.stringify({ posts, syncPending, checkpoint }));
 };

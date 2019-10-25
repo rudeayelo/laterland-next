@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { useRouter } from "next/router";
 import styled from "../styled";
 import {
@@ -8,6 +8,8 @@ import {
 import format from "date-fns/lightFormat";
 import formatDistance from "date-fns/formatDistance";
 import extractDomain from "extract-domain";
+import { Machine } from 'xstate';
+import { useMachine } from '@xstate/react';
 import { Badge, Box, Flex, Text } from "@chakra-ui/core";
 import { motion, useMotionValue, useTransform } from "framer-motion";
 import {
@@ -25,6 +27,37 @@ import {
   useAlert,
   useApi,
 } from "../hooks";
+
+const updatePostMachine = Machine({
+  id: 'updatePost',
+  initial: 'idle',
+  states: {
+    idle: {
+      on: {
+        UPDATE: "updating",
+        DELETE: 'deleting',
+      }
+    },
+    updating: {
+      entry: "onGoToUpdateView"
+    },
+    deleting: {
+      entry: "onDelete",
+      on: {
+        DELETE_SUCCESS: {
+          target: "deleted"
+        },
+        DELETE_FAILED: {
+          target: "idle",
+          actions: "onPostDeleteFailed"
+        }
+      }
+    },
+    deleted: {
+      entry: "onPostDeleteSuccess"
+    }
+  }
+});
 
 /* -------------------------------------------------------------------------- */
 /*                               Post container                               */
@@ -243,7 +276,6 @@ const Post = ({ post, isCheckpoint }) => {
   const alert = useAlert();
   const postEl = useRef<HTMLInputElement>(null);
   const x = useMotionValue(0);
-  const [editing, setEditing] = useState(false);
   const {
     data: deletePostData,
     error: deletePostError,
@@ -260,6 +292,26 @@ const Post = ({ post, isCheckpoint }) => {
     lazy: true
   });
 
+  const postDate = new Date(post.time);
+  const postISODate = format(postDate, "yyyy-MM-dd");
+
+  const [current, send] = useMachine(updatePostMachine, {
+    actions: {
+      onGoToUpdateView: () => router.push(`/update?url=${post.href}&fallback_date=${postISODate}`),
+      onDelete: () => deletePost(),
+      onPostDeleteSuccess: () => alert({
+        title: "Post deleted successfuly",
+        icon: MdDelete,
+        intent: "success"
+      }),
+      onPostDeleteFailed: () => alert({
+        title: "Error deleting the post",
+        description: deletePostError || deletePostData.data,
+        intent: "error"
+      }),
+    }
+  });
+
   useEffect(() => {
     if (isCheckpoint && postEl && postEl.current) {
       postEl.current.scrollIntoView({ block: "center" });
@@ -267,28 +319,17 @@ const Post = ({ post, isCheckpoint }) => {
   }, [isCheckpoint, postEl]);
 
   useEffect(() => {
-    if (!deletePostLoading && deletePostData && !deletePostData.error) {
-      alert({
-        title: "Post deleted successfuly",
-        icon: MdDelete,
-        intent: "success"
-      })
-    }
+    !deletePostLoading && deletePostData && !deletePostData.error && send("DELETE_SUCCESS")
   }, [deletePostLoading, deletePostData]);
 
   useEffect(() => {
-    if (deletePostError || deletePostData?.error) {
-      alert({
-        title: "Error deleting the post",
-        description: deletePostError || deletePostData.data,
-        intent: "error"
-      })
-    }
+    deletePostError || deletePostData?.error && send("DELETE_FAILED")
   }, [deletePostError, deletePostData]);
 
-  const variants = {
-    default: {
-      opacity: 1
+  const postUpdateVariants = {
+    idle: {
+      opacity: 1,
+      x: 0
     },
     deleting: {
       opacity: 0.5,
@@ -301,17 +342,9 @@ const Post = ({ post, isCheckpoint }) => {
       paddingBottom: 0,
       x: 0
     },
-    editing: {
+    updating: {
       x: "50%"
     }
-  };
-
-  const postDate = new Date(post.time);
-  const postISODate = format(postDate, "yyyy-MM-dd");
-
-  const goToUpdateView = () => {
-    setEditing(true);
-    router.push(`/update?url=${post.href}&fallback_date=${postISODate}`);
   };
 
   const goToPostHref = () => {
@@ -321,22 +354,14 @@ const Post = ({ post, isCheckpoint }) => {
 
   return (
     <PostContainer isCheckpoint={isCheckpoint} ref={postEl}>
-      <EditIndicator dragX={x} onDragEnd={goToUpdateView} />
-      <DeleteIndicator dragX={x} onDragEnd={deletePost} deleting={deletePostLoading} />
+      <EditIndicator dragX={x} onDragEnd={() => send("UPDATE")} />
+      <DeleteIndicator dragX={x} onDragEnd={() => send("DELETE")} deleting={current.matches("deleting")} />
       <motion.div
         onTap={goToPostHref}
         style={{ x }}
-        variants={variants}
-        animate={
-          deletePostLoading
-            ? "deleting"
-            : deletePostData && !deletePostData.error
-              ? "deleted"
-              : editing
-                ? "editing"
-                : "default"
-        }
-        transition={{ ease: "easeOut", duration: 0.2 }}
+        variants={postUpdateVariants}
+        animate={current.value}
+        transition={{ ease: "easeOut", duration: 0.3 }}
       >
         <Box px={3} py={3}>
           <PostDescription>
