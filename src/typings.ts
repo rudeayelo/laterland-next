@@ -9,7 +9,7 @@ export type Post = {
   extended: string;
 };
 
-export type PublicPost = Omit<Post, "source" | "hash" | "toread">;
+export type PublicPost = Omit<Post, "hash" | "toread">;
 
 export type UID = string;
 
