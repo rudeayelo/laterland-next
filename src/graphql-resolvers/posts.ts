@@ -1,7 +1,6 @@
 import fetch from "isomorphic-unfetch";
 import { db } from "../firebase-admin";
-import { pinboardEndpoint } from "../helpers";
-import { getPinboardToken, getSyncPending } from "./helpers";
+import { getPinboardToken, getSyncPending, pinboardEndpoint } from "./helpers";
 import { USERS_COLLECTION, POSTS_COLLECTION } from "../constants";
 import { Post, PublicPost, UID } from "../typings";
 
@@ -59,7 +58,6 @@ const getDbPosts = async ({
 }): Promise<PublicPost[]> => {
   console.log("--> Get posts from Firebase");
 
-  // TODO: trycatch, handle error
   const postsQuery = await db
     .collection(`${USERS_COLLECTION}/${uid}/${POSTS_COLLECTION}`)
     .where("toread", "==", toread)
@@ -75,7 +73,9 @@ const getDbPosts = async ({
       description: postData.description,
       tags: postData.tags,
       time: postData.time,
-      extended: postData.extended
+      extended: postData.extended,
+      deleted: postData.deleted,
+      updated: postData.updated
     };
   });
 };
@@ -94,7 +94,7 @@ const updatePosts = async ({
     const postsDoc = db
       .collection(`${USERS_COLLECTION}/${uid}/${POSTS_COLLECTION}`)
       .doc(post.hash);
-    batch.set(postsDoc, { ...post, id: post.hash });
+    batch.set(postsDoc, { ...post, id: post.hash }, { merge: true });
   });
 
   await batch.commit();

@@ -1,5 +1,5 @@
 import { ApolloServer, gql } from "apollo-server-micro";
-import { verifyUserIdToken } from "../../helpers";
+import firebase from "../../firebase-admin";
 import {
   checkpoint,
   deletePost,
@@ -17,7 +17,7 @@ const typeDefs = gql`
     user: User!
     posts(toread: ToRead, fetchFromPinboard: Boolean): [Post]!
     post(id: String): Post
-    tags(url: String): Tags
+    tags(url: String): [String]!
   }
 
   type Mutation {
@@ -39,14 +39,13 @@ const typeDefs = gql`
     time: String!
     tags: String
     extended: String
+    deleted: Float
+    updated: Float
+    suggestedTags: [String]
   }
 
   type Result {
     result: String
-  }
-
-  type Tags {
-    tags: [String]!
   }
 
   type Checkpoint {
@@ -79,7 +78,9 @@ const resolvers = {
 };
 
 const context = async ({ req }) => {
-  const uid = await verifyUserIdToken(req.headers.authentication);
+  const { uid } = await firebase
+    .auth()
+    .verifyIdToken(req.headers.authentication);
 
   return { uid };
 };

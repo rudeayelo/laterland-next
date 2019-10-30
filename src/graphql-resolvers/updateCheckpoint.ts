@@ -6,9 +6,9 @@ const updateCheckpoint = async (_, { id }, { uid }) => {
     await db
       .doc(`${USERS_COLLECTION}/${uid}`)
       .set({ checkpoint: id }, { merge: true });
-    console.log("==> Succesfully updated the checkpoint");
+    console.log("--> Succesfully updated the checkpoint");
   } catch (error) {
-    console.warn("==> Failed updating the checkpoint:", error);
+    console.warn("--> Failed updating the checkpoint:", error);
 
     throw new Error(error);
   }

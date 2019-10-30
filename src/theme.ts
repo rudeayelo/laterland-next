@@ -65,11 +65,11 @@ const paletteColors = {
     900: darken(baseColors.orange, 0.8)
   },
   red: {
-    50: lighten(baseColors.red, 0.5),
-    100: lighten(baseColors.red, 0.4),
-    200: lighten(baseColors.red, 0.3),
-    300: lighten(baseColors.red, 0.2),
-    400: lighten(baseColors.red, 0.1),
+    50: lighten(baseColors.red, 0.98),
+    100: lighten(baseColors.red, 0.7),
+    200: lighten(baseColors.red, 0.5),
+    300: lighten(baseColors.red, 0.3),
+    400: lighten(baseColors.red, 0.15),
     500: baseColors.red,
     600: darken(baseColors.red, 0.2),
     700: darken(baseColors.red, 0.4),

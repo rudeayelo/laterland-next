@@ -4,7 +4,8 @@ import React from "react";
 import { Box, Button, CSSReset, Flex, ThemeProvider } from "@chakra-ui/core";
 import { AnimatePresence } from "framer-motion";
 import { customTheme } from "../theme";
-import { PageLoading, AuthProvider, useAuth } from "../components";
+import { PageLoading } from "../components";
+import { AuthProvider, GraphQLProvider, useAuth } from "../providers";
 import { MdPerson } from "react-icons/md";
 
 const Main = ({ children }) => {
@@ -66,11 +67,13 @@ export default class MyApp extends App {
         <ThemeProvider theme={customTheme}>
           <CSSReset />
           <AuthProvider>
-            <Main>
-              <AnimatePresence exitBeforeEnter>
-                <Component {...pageProps} key={router.route} />
-              </AnimatePresence>
-            </Main>
+            <GraphQLProvider>
+              <Main>
+                <AnimatePresence exitBeforeEnter>
+                  <Component {...pageProps} key={router.route} />
+                </AnimatePresence>
+              </Main>
+            </GraphQLProvider>
           </AuthProvider>
         </ThemeProvider>
       </>

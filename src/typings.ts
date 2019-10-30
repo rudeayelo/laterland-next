@@ -7,6 +7,8 @@ export type Post = {
   tags: string;
   time: string;
   extended: string;
+  deleted: number;
+  updated: number;
 };
 
 export type PublicPost = Omit<Post, "hash" | "toread">;

@@ -2,8 +2,7 @@ import fetch from "isomorphic-unfetch";
 import differenceInMinutes from "date-fns/differenceInMinutes";
 import formatDistanceToNow from "date-fns/formatDistanceToNow";
 import { db } from "../../firebase-admin";
-import { pinboardEndpoint } from "../../helpers";
-import { getPinboardToken } from ".";
+import { getPinboardToken, pinboardEndpoint } from ".";
 import { USERS_COLLECTION } from "../../constants";
 import { UID } from "../../typings";
 

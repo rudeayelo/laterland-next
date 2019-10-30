@@ -5,7 +5,6 @@ import {
   border,
   BorderProps,
 } from "styled-system";
-import format from "date-fns/lightFormat";
 import formatDistance from "date-fns/formatDistance";
 import extractDomain from "extract-domain";
 import { Machine } from 'xstate';
@@ -15,6 +14,7 @@ import { motion, useMotionValue, useTransform } from "framer-motion";
 import {
   MdCode,
   MdDelete,
+  MdSyncProblem,
   MdDescription,
   MdEdit,
   MdLink,
@@ -23,10 +23,8 @@ import {
 import { FaYoutube, FaGithub, FaTwitter } from "react-icons/fa";
 import { Icon } from "./Icon";
 import { Loading } from "./Loading";
-import {
-  useAlert,
-  useApi,
-} from "../hooks";
+import { useAlert } from "../hooks";
+import { useClient, useMutation } from "../providers/GraphQLProvider";
 
 const updatePostMachine = Machine({
   id: 'updatePost',
@@ -35,7 +33,7 @@ const updatePostMachine = Machine({
     idle: {
       on: {
         UPDATE: "updating",
-        DELETE: 'deleting',
+        DELETE: "deleting",
       }
     },
     updating: {
@@ -64,15 +62,18 @@ const updatePostMachine = Machine({
 /* -------------------------------------------------------------------------- */
 
 interface PostContainerProps extends BorderProps {
-  isCheckpoint?: boolean
+  variant?: "checkpoint" | "deleted"
 }
 
 const PostContainer = styled(Box)<PostContainerProps>`
   cursor: pointer;
   overflow: hidden;
-  background: ${({isCheckpoint, theme}) =>
-    // @ts-ignore
-    isCheckpoint && theme.colors.orange["50"]
+  background: ${({variant, theme}) =>
+    variant === "deleted"
+      // @ts-ignore
+      ? theme.colors.gray["50"]
+      // @ts-ignore
+      : variant === "checkpoint" && theme.colors.orange["50"]
   };
 
   &:not(:last-child) {
@@ -276,28 +277,18 @@ const Post = ({ post, isCheckpoint }) => {
   const alert = useAlert();
   const postEl = useRef<HTMLInputElement>(null);
   const x = useMotionValue(0);
-  const {
-    data: deletePostData,
-    error: deletePostError,
-    loading: deletePostLoading,
-    execute: deletePost
-  } = useApi(`/delete`, {
-    body: { url: post.href, hash: post.id },
-    lazy: true
-  });
-  const {
-    execute: setCheckpoint
-  } = useApi(`/checkpoint`, {
-    body: { hash: post.id },
-    lazy: true
-  });
-
-  const postDate = new Date(post.time);
-  const postISODate = format(postDate, "yyyy-MM-dd");
+  const client = useClient();
+  const {execute: deletePost, response: deletePostResponse} = useMutation(
+    `mutation($id: String) {
+      delete(id: $id ) {
+        result
+      }
+    }`, { id: post.id }
+  )
 
   const [current, send] = useMachine(updatePostMachine, {
     actions: {
-      onGoToUpdateView: () => router.push(`/update?url=${post.href}&fallback_date=${postISODate}`),
+      onGoToUpdateView: () => router.push(`/update?id=${post.id}`),
       onDelete: () => deletePost(),
       onPostDeleteSuccess: () => alert({
         title: "Post deleted successfuly",
@@ -306,25 +297,24 @@ const Post = ({ post, isCheckpoint }) => {
       }),
       onPostDeleteFailed: () => alert({
         title: "Error deleting the post",
-        description: deletePostError || deletePostData.data,
+        description: deletePostResponse?.errors[0].message,
         intent: "error"
       }),
     }
   });
 
   useEffect(() => {
-    if (isCheckpoint && postEl && postEl.current) {
+    if (isCheckpoint && postEl?.current) {
       postEl.current.scrollIntoView({ block: "center" });
     }
   }, [isCheckpoint, postEl]);
 
   useEffect(() => {
-    !deletePostLoading && deletePostData && !deletePostData.error && send("DELETE_SUCCESS")
-  }, [deletePostLoading, deletePostData]);
+    deletePostResponse && !deletePostResponse.errors && send("DELETE_SUCCESS")
+    deletePostResponse?.errors && send("DELETE_FAILED")
+  }, [deletePostResponse]);
 
-  useEffect(() => {
-    deletePostError || deletePostData?.error && send("DELETE_FAILED")
-  }, [deletePostError, deletePostData]);
+  const postDate = new Date(post.time);
 
   const postUpdateVariants = {
     idle: {
@@ -347,13 +337,25 @@ const Post = ({ post, isCheckpoint }) => {
     }
   };
 
+  const setCheckpoint = (): void => {
+    client.request(
+      `mutation($id: String) {
+        updateCheckpoint(id: $id ) {
+          checkpoint
+        }
+      }`, { id: post.id }
+    )
+  }
+
   const goToPostHref = () => {
     setCheckpoint()
     window.location.href = post.href;
   };
 
+  const variant = isCheckpoint ? "checkpoint" : post.deleted ? "deleted" : null
+
   return (
-    <PostContainer isCheckpoint={isCheckpoint} ref={postEl}>
+    <PostContainer variant={variant} ref={postEl}>
       <EditIndicator dragX={x} onDragEnd={() => send("UPDATE")} />
       <DeleteIndicator dragX={x} onDragEnd={() => send("DELETE")} deleting={current.matches("deleting")} />
       <motion.div
@@ -379,6 +381,24 @@ const Post = ({ post, isCheckpoint }) => {
               >
                 <Icon
                   as={MdRemoveRedEye}
+                  size={4}
+                />
+              </Badge>
+            }
+            {post.deleted &&
+              <Badge
+                as="span"
+                transform="translateY(-2px)"
+                borderColor="red.200"
+                borderStyle="solid"
+                borderWidth={1}
+                variantColor="red"
+                borderRadius="full"
+                px={1}
+                mr={2}
+              >
+                <Icon
+                  as={MdSyncProblem}
                   size={4}
                 />
               </Badge>

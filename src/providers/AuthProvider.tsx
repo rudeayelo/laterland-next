@@ -59,14 +59,13 @@ const AuthProvider = ({ children }) => {
         userLoggedIn.current = true;
       })
       .catch(error => {
-        console.warn("==> Error getting the userToken from Firebase:", error);
+        console.warn("--> Error getting the userToken from Firebase:", error);
       });
   };
 
   useEffect(() => {
     firebase.auth().onAuthStateChanged(fbUser => {
       if (fbUser && !userLoggedIn.current) {
-        console.log("==> Setting userToken through onAuthStateChanged");
         setUserSignedIn();
       }
     });
@@ -76,7 +75,6 @@ const AuthProvider = ({ children }) => {
       .getRedirectResult()
       .then(({ user: fbUser }) => {
         if (fbUser && !userLoggedIn.current) {
-          console.log("==> Setting userToken through getRedirectResult");
           setUserSignedIn();
         }
       })
@@ -119,7 +117,7 @@ const useAuth = () => {
         setSignedOut();
       })
       .catch(error => {
-        console.warn("==> Error signing out the user:", error);
+        console.warn("--> Error signing out the user:", error);
       });
   };
 

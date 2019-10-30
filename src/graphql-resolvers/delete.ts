@@ -1,11 +1,21 @@
 import fetch from "isomorphic-unfetch";
+import { ApolloError } from "apollo-server-micro";
 import { db } from "../firebase-admin";
-import { pinboardEndpoint } from "../helpers";
-import { getPinboardToken } from "./helpers";
+import { getPinboardToken, pinboardEndpoint } from "./helpers";
 import { USERS_COLLECTION, POSTS_COLLECTION } from "../constants";
 
-const deletePost = async (_, { url, id }, { uid }) => {
-  const encodedUrl = encodeURI(url);
+const deletePost = async (_, { id }, { uid }) => {
+  const postDocRef = await db
+    .collection(`${USERS_COLLECTION}/${uid}/${POSTS_COLLECTION}`)
+    .doc(id);
+
+  const postDoc = await postDocRef.get();
+
+  if (!postDoc.exists) throw new Error("Post doesn't exist in the DB");
+
+  const post = postDoc.data();
+
+  const encodedUrl = encodeURI(post.href);
 
   const pinboardToken = await getPinboardToken(uid);
 
@@ -16,26 +26,35 @@ const deletePost = async (_, { url, id }, { uid }) => {
   const { result_code } = await pinboardDelete.json();
 
   let isError = result_code !== "done";
-  console.log("result_code", result_code);
 
   if (isError && result_code !== "item not found") {
-    console.log("==> Something failed deleting the post:", result_code);
+    console.log("--> Something failed deleting the post:", result_code);
 
-    throw new Error(result_code);
+    throw new ApolloError(result_code, "PINBOARD_ERROR");
+  }
+  if (isError && result_code === "item not found") {
+    console.log("--> Post not found in Pinboard");
+
+    await postDocRef.set(
+      { toread: "no", deleted: Date.now() },
+      { merge: true }
+    );
+
+    throw new ApolloError("Post not found in Pinboard", "PINBOARD_NOT_FOUND");
   } else {
     try {
-      await db
-        .collection(`${USERS_COLLECTION}/${uid}/${POSTS_COLLECTION}`)
-        .doc(id)
-        .set({ toread: "no", deleted: Date.now() }, { merge: true });
-      console.log("==> Succesfully deleted the post");
+      await postDocRef.set(
+        { toread: "no", deleted: Date.now() },
+        { merge: true }
+      );
+      console.log("--> Succesfully deleted the post");
     } catch (error) {
       console.warn(
-        "==> Deleted the post in Pinboard but something failed in Firebase:",
+        "--> Deleted the post in Pinboard but something failed in Firebase:",
         error
       );
 
-      throw new Error(error);
+      throw new ApolloError(error, "FIREBASE_ERROR");
     }
   }
 

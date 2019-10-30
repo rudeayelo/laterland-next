@@ -1,39 +1,56 @@
-import { Box, Button, Flex, IconButton, Text } from "@chakra-ui/core";
+import { Box, Button, Flex, Text } from "@chakra-ui/core";
 import { motion } from "framer-motion";
-import { MdSync } from "react-icons/md";
-import { Alert, PageLoading, Post, useAuth } from "../components";
-import { useApi } from "../hooks";
+import { Alert, PageLoading, Post } from "../components";
+import { useAuth, useQuery } from "../providers";
+
+const POSTS_QUERY = `
+  {
+    posts(fetchFromPinboard: true) {
+      id
+      description
+      href
+      time
+      deleted
+    }
+    user {
+      syncPending
+      checkpoint
+    }
+  }
+`;
 
 export default () => {
   const { signout } = useAuth();
-  const { data, error, loading, execute } = useApi(`/list`, {
-    body: { toread: "yes" }
-  });
-
-  const sync = () => execute({ fetchFromPinboard: true });
+  const { data, error } = useQuery(POSTS_QUERY);
 
   if (error)
     return (
-      <Alert
-        intent="error"
-        alignItems="center"
-        justifyContent="space-between"
-        m={3}
-      >
-        <Text>Error loading posts</Text>
-        <Button
-          onClick={signout}
-          variantColor="white"
-          variant="outline"
-          ml="auto"
-          size="sm"
+      <Box px={3} pt={3} minW="100vw">
+        <Alert
+          intent="error"
+          alignItems="center"
+          justifyContent="space-between"
         >
-          Try signin out
-        </Button>
-      </Alert>
+          <Flex alignItems="center" flex={1}>
+            <Box ml={3} textAlign="left" flex={1}>
+              <Text fontWeight="medium">Error</Text>
+              <Text fontSize="sm">{data.errors[0].message}</Text>
+            </Box>
+            <Button
+              onClick={signout}
+              variantColor="white"
+              variant="outline"
+              ml="auto"
+              size="sm"
+            >
+              Try signing out
+            </Button>
+          </Flex>
+        </Alert>
+      </Box>
     );
 
-  if (loading && !data) return <PageLoading />;
+  if (!data) return <PageLoading />;
 
   return (
     <motion.div
@@ -45,39 +62,21 @@ export default () => {
       }}
       transition={{ ease: "easeOut", duration: 0.2 }}
     >
-      <Flex justifyContent="space-between" mt={10} mb={3} mx={3}>
-        <Text as="h1" color="gray.900" fontWeight="medium" fontSize="xl">
-          {data.posts.length} unread posts
-        </Text>
-        <Box position="relative">
-          <IconButton
-            size="sm"
-            onClick={sync}
-            icon={MdSync}
-            aria-label="Get new posts"
-            isDisabled={!data.syncPending}
-            isLoading={loading}
-          />
-          {data.syncPending && (
-            <Box
-              backgroundColor="blue.500"
-              borderStyle="solid"
-              borderWidth={2}
-              borderColor="white"
-              width={3}
-              height={3}
-              borderRadius="rounded"
-              position="absolute"
-              top={-4}
-              right={-4}
-            />
-          )}
-        </Box>
-      </Flex>
+      <Text
+        as="h1"
+        color="gray.900"
+        fontWeight="medium"
+        fontSize="xl"
+        mt={10}
+        mb={3}
+        mx={3}
+      >
+        {data.posts.length} unread posts
+      </Text>
       {data.posts.map(post => (
         <Post
           post={post}
-          isCheckpoint={post.id === data.checkpoint}
+          isCheckpoint={post.id === data.user.checkpoint}
           key={post.id}
         />
       ))}
