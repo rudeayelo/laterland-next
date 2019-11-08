@@ -21,7 +21,7 @@ const POSTS_QUERY = `
 
 export default () => {
   const { signout } = useAuth();
-  const { data, error } = useQuery(POSTS_QUERY);
+  const { data, error, isLoading } = useQuery("list", POSTS_QUERY);
 
   if (error)
     return (
@@ -50,7 +50,7 @@ export default () => {
       </Box>
     );
 
-  if (!data) return <PageLoading />;
+  if (isLoading) return <PageLoading />;
 
   return (
     <motion.div

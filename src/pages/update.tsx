@@ -103,8 +103,8 @@ export default () => {
   const [tags, setTags] = useState([]);
   const [autocompleteTags, setAutocompleteTags] = useState([]);
   const [description, setDescription] = useState("");
-  const { data, error: postError, isValidating } = useQuery(POST_QUERY, { id })
-  const { data: allTags, error: allTagsError } = useQuery(ALL_TAGS_QUERY)
+  const { data, error: postError, isLoading } = useQuery("post", POST_QUERY, { id })
+  const { data: allTags } = useQuery("allTags", ALL_TAGS_QUERY)
   const { execute: updatePost, response: updatePostResponse } = useMutation(
     UPDATE_POST_MUTATION,
     { id, description, tags: tags.join(" ") }
@@ -210,7 +210,7 @@ export default () => {
 
   return (
     <>
-      {!data?.post || isValidating ? (
+      {isLoading ? (
         <PageLoading />
       ) : (
         <motion.div

@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useRef, useState } from "react";
 import { GraphQLClient } from "graphql-request";
-import useSWR from "@zeit/swr";
+import { useQuery as useReactQuery } from "react-query";
 import { useAuth } from "./AuthProvider";
 
 type GraphQLContext = GraphQLClient;
@@ -29,14 +29,15 @@ const useClient = () => {
   return client;
 };
 
-const useQuery = (query: string, variables?: {}) => {
+const useQuery = (key: string, query: string, variables?: {}) => {
   const client = useContext(GraphQLContext);
 
-  const { data, error, isValidating, revalidate } = useSWR(query, query =>
-    client.request(query, variables)
+  const { data, error, isLoading, isFetching } = useReactQuery(
+    [key, variables],
+    () => client.request(query, variables)
   );
 
-  return { data, error, isValidating, revalidate };
+  return { data, error, isLoading, isFetching };
 };
 
 const useMutation = (mutation: string, variables?: {}) => {
