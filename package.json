@@ -12,7 +12,7 @@
     "@emotion/core": "10.0.22",
     "@emotion/styled": "10.0.23",
     "@xstate/react": "0.8.1",
-    "apollo-server-micro": "2.9.7",
+    "apollo-server-micro": "2.14.2",
     "date-fns": "2.7.0",
     "emotion-theming": "10.0.19",
     "extract-domain": "2.2.1",
